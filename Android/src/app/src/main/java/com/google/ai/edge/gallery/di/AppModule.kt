@@ -27,6 +27,7 @@ import com.google.ai.edge.gallery.CutoutsSerializer
 import com.google.ai.edge.gallery.GalleryLifecycleProvider
 import com.google.ai.edge.gallery.SettingsSerializer
 import com.google.ai.edge.gallery.SkillsSerializer
+import com.google.ai.edge.gallery.StockAnalyzerSerializer
 import com.google.ai.edge.gallery.UserDataSerializer
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDataStoreRepository
@@ -36,6 +37,7 @@ import com.google.ai.edge.gallery.proto.BenchmarkResults
 import com.google.ai.edge.gallery.proto.CutoutCollection
 import com.google.ai.edge.gallery.proto.Settings
 import com.google.ai.edge.gallery.proto.Skills
+import com.google.ai.edge.gallery.proto.StockAnalyzerData
 import com.google.ai.edge.gallery.proto.UserData
 import dagger.Module
 import dagger.Provides
@@ -81,6 +83,13 @@ internal object AppModule {
   @Singleton
   fun provideSkillsSerializer(): Serializer<Skills> {
     return SkillsSerializer
+  }
+
+  // Provides the StockAnalyzerSerializer
+  @Provides
+  @Singleton
+  fun provideStockAnalyzerSerializer(): Serializer<StockAnalyzerData> {
+    return StockAnalyzerSerializer
   }
 
   // Provides DataStore<Settings>
@@ -148,6 +157,19 @@ internal object AppModule {
     )
   }
 
+  // Provides DataStore<StockAnalyzerData>
+  @Provides
+  @Singleton
+  fun provideStockAnalyzerDataStore(
+    @ApplicationContext context: Context,
+    stockAnalyzerSerializer: Serializer<StockAnalyzerData>,
+  ): DataStore<StockAnalyzerData> {
+    return DataStoreFactory.create(
+      serializer = stockAnalyzerSerializer,
+      produceFile = { context.dataStoreFile("stock_analyzer.pb") },
+    )
+  }
+
   // Provides AppLifecycleProvider
   @Provides
   @Singleton
@@ -164,6 +186,7 @@ internal object AppModule {
     cutoutsDataStore: DataStore<CutoutCollection>,
     benchmarkResultsStore: DataStore<BenchmarkResults>,
     skillsDataStore: DataStore<Skills>,
+    stockAnalyzerDataStore: DataStore<StockAnalyzerData>,
   ): DataStoreRepository {
     return DefaultDataStoreRepository(
       dataStore,
@@ -171,6 +194,7 @@ internal object AppModule {
       cutoutsDataStore,
       benchmarkResultsStore,
       skillsDataStore,
+      stockAnalyzerDataStore,
     )
   }
 
