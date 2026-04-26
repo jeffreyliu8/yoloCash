@@ -912,7 +912,7 @@ constructor(
 
         if (modelAllowlist == null) {
           // Load from github.
-          var version = BuildConfig.VERSION_NAME.replace(".", "_")
+          val version = BuildConfig.VERSION_NAME.replace(".", "_")
           val url = getAllowlistUrl(version)
           Log.d(TAG, "Loading model allowlist from internet. Url: $url")
           val data = getJsonResponse<ModelAllowlist>(url = url)
@@ -923,7 +923,7 @@ constructor(
             modelAllowlist = readModelAllowlistFromDisk()
           } else {
             Log.d(TAG, "Done: loading model allowlist from internet")
-            saveModelAllowlistToDisk(modelAllowlistContent = data?.textContent ?: "{}")
+            saveModelAllowlistToDisk(modelAllowlistContent = data.textContent)
           }
         }
 
