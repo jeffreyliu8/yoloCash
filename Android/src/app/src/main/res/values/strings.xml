@@ -130,6 +130,7 @@
   <string name="model_manager" translatable="false">Model Manager</string>
   <string name="model_manager_select_task_title" translatable="false">Select a use case to try</string>
   <string name="model_not_downloaded_msg" translatable="false">Model not downloaded yet</string>
+  <string name="my_settings" translatable="false">MySettings</string>
   <string name="name" translatable="false">Name</string>
   <string name="no_cutouts_collected" translatable="false">No cutouts collected</string>
   <string name="notification_content_fail" translatable="false">Failed to download model "%s"</string>
@@ -325,6 +326,8 @@
   <string name="cd_navigate_back_icon">Go back</string>
   <!-- Content description spoken when the settings icon is focused. [CHAR_LIMIT=NONE] -->
   <string name="cd_app_settings_icon">Settings</string>
+  <!-- Content description spoken when the MySettings icon is focused. [CHAR_LIMIT=NONE] -->
+  <string name="cd_my_settings_icon">MySettings</string>
   <!-- Content description spoken when the done icon is focused. [CHAR_LIMIT=NONE] -->
   <string name="cd_done_icon">Done</string>
   <!-- Content description spoken when the collapse icon is focused. [CHAR_LIMIT=NONE] -->

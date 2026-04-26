@@ -131,6 +131,17 @@ fun GalleryTopAppBar(
           }
         }
 
+        // Click an icon to open "my settings".
+        AppBarActionType.MY_SETTINGS -> {
+          IconButton(onClick = rightAction.actionFn) {
+            Icon(
+              imageVector = Icons.Rounded.Settings,
+              contentDescription = stringResource(R.string.cd_my_settings_icon),
+              tint = MaterialTheme.colorScheme.onSurface,
+            )
+          }
+        }
+
         // Click a button to navigate up.
         AppBarActionType.NAVIGATE_UP -> {
           TextButton(onClick = rightAction.actionFn) { Text("Done") }

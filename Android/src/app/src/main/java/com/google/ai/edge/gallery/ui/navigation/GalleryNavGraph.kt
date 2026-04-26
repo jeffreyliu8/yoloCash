@@ -86,6 +86,8 @@ import com.google.ai.edge.gallery.ui.modelmanager.GlobalModelManager
 import com.google.ai.edge.gallery.ui.modelmanager.ModelInitializationStatusType
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManager
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
+import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,6 +98,8 @@ private const val ROUTE_MODEL_LIST = "model_list"
 private const val ROUTE_MODEL = "route_model"
 private const val ROUTE_BENCHMARK = "benchmark"
 private const val ROUTE_MODEL_MANAGER = "model_manager"
+private const val ROUTE_MY_SETTINGS = "my_settings"
+private const val ROUTE_STOCK_ANALYZER = "stock_analyzer"
 private const val ENTER_ANIMATION_DURATION_MS = 500
 private val ENTER_ANIMATION_EASING = EaseOutExpo
 private const val ENTER_ANIMATION_DELAY_MS = 100
@@ -208,6 +212,7 @@ fun GalleryNavHost(
               )
             },
             onModelsClicked = { navController.navigate(ROUTE_MODEL_MANAGER) },
+            onMySettingsClicked = { navController.navigate(ROUTE_MY_SETTINGS) },
             gm4 = true,
           )
         }
@@ -415,6 +420,41 @@ fun GalleryNavHost(
           navController.navigate("$ROUTE_BENCHMARK/${model.name}")
         },
       )
+    }
+
+    // My settings page.
+    composable(
+      route = ROUTE_MY_SETTINGS,
+      enterTransition = { slideUpEnter() },
+      exitTransition = { slideDownExit() },
+    ) {
+      MySettingsScreen(
+        viewModel = modelManagerViewModel,
+        navigateUp = {
+          enableHomeScreenAnimation = false
+          navController.navigateUp()
+        },
+        onModelSelected = { task, model ->
+          navController.navigate("$ROUTE_MODEL/${task.id}/${model.name}")
+        },
+        onBenchmarkClicked = { model ->
+          firebaseAnalytics?.logEvent(
+            GalleryEvent.CAPABILITY_SELECT.id,
+            Bundle().apply { putString("capability_name", "benchmark_${model.name}") },
+          )
+          navController.navigate("$ROUTE_BENCHMARK/${model.name}")
+        },
+        onStockAnalyzerClicked = { navController.navigate(ROUTE_STOCK_ANALYZER) },
+      )
+    }
+
+    // Stock analyzer page.
+    composable(
+      route = ROUTE_STOCK_ANALYZER,
+      enterTransition = { slideEnter() },
+      exitTransition = { slideExit() },
+    ) {
+      StockAnalyzerScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Benchmark creation page.

@@ -20,6 +20,7 @@ package com.google.ai.edge.gallery.data
 enum class AppBarActionType {
   NO_ACTION,
   APP_SETTING,
+  MY_SETTINGS,
   DOWNLOAD_MANAGER,
   NAVIGATE_UP,
   MENU,
