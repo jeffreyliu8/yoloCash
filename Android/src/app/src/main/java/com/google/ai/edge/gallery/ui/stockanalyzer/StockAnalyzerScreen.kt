@@ -54,7 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.ai.edge.gallery.R
-import com.google.ai.edge.gallery.proto.AlpacaCredential
+import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +115,7 @@ fun StockAnalyzerScreen(
 
 @Composable
 fun CredentialsTab(
-  credentials: List<AlpacaCredential>,
+  credentials: List<AlpacaCredentialEntity>,
   onAddCredential: (String, String, String) -> Unit,
   onDeleteCredential: (String) -> Unit,
 ) {

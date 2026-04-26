@@ -18,62 +18,64 @@ package com.google.ai.edge.gallery.ui.stockanalyzer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.ai.edge.gallery.data.DataStoreRepository
-import com.google.ai.edge.gallery.proto.AlpacaCredential
+import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
+import com.google.ai.edge.gallery.data.room.StockDao
+import com.google.ai.edge.gallery.data.room.WatchlistStockEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class StockAnalyzerUiState(
-  val credentials: List<AlpacaCredential> = emptyList(),
+  val credentials: List<AlpacaCredentialEntity> = emptyList(),
   val watchlist: List<String> = emptyList(),
 )
 
 @HiltViewModel
 class StockAnalyzerViewModel @Inject constructor(
-  private val dataStoreRepository: DataStoreRepository,
+  private val stockDao: StockDao,
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(StockAnalyzerUiState())
-  val uiState: StateFlow<StockAnalyzerUiState> = _uiState.asStateFlow()
+  val uiState: StateFlow<StockAnalyzerUiState> = combine(
+    stockDao.getAllCredentials(),
+    stockDao.getWatchlist()
+  ) { credentials, watchlist ->
+    StockAnalyzerUiState(
+      credentials = credentials,
+      watchlist = watchlist.map { it.symbol }
+    )
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = StockAnalyzerUiState()
+  )
 
-  init {
-    loadData()
-  }
-
-  private fun loadData() {
+  fun addCredential(name: String, apiKey: String, apiSecret: String) {
     viewModelScope.launch {
-      val credentials = dataStoreRepository.getAllAlpacaCredentials()
-      val watchlist = dataStoreRepository.getWatchlist()
-      _uiState.value = StockAnalyzerUiState(credentials, watchlist)
+      stockDao.insertCredential(
+        AlpacaCredentialEntity(name, apiKey, apiSecret)
+      )
     }
   }
 
-  fun addCredential(name: String, apiKey: String, apiSecret: String) {
-    val credential = AlpacaCredential.newBuilder()
-      .setName(name)
-      .setApiKey(apiKey)
-      .setApiSecret(apiSecret)
-      .build()
-    dataStoreRepository.addAlpacaCredential(credential)
-    loadData()
-  }
-
   fun deleteCredential(name: String) {
-    dataStoreRepository.deleteAlpacaCredential(name)
-    loadData()
+    viewModelScope.launch {
+      stockDao.deleteCredential(name)
+    }
   }
 
   fun addToWatchlist(symbol: String) {
-    dataStoreRepository.addStockToWatchlist(symbol.uppercase())
-    loadData()
+    viewModelScope.launch {
+      stockDao.insertStock(WatchlistStockEntity(symbol.uppercase()))
+    }
   }
 
   fun removeFromWatchlist(symbol: String) {
-    dataStoreRepository.removeStockFromWatchlist(symbol)
-    loadData()
+    viewModelScope.launch {
+      stockDao.deleteStock(symbol)
+    }
   }
 }

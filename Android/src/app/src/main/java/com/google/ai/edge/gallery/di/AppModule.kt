@@ -21,23 +21,24 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStoreFile
+import androidx.room.Room
 import com.google.ai.edge.gallery.AppLifecycleProvider
 import com.google.ai.edge.gallery.BenchmarkResultsSerializer
 import com.google.ai.edge.gallery.CutoutsSerializer
 import com.google.ai.edge.gallery.GalleryLifecycleProvider
 import com.google.ai.edge.gallery.SettingsSerializer
 import com.google.ai.edge.gallery.SkillsSerializer
-import com.google.ai.edge.gallery.StockAnalyzerSerializer
 import com.google.ai.edge.gallery.UserDataSerializer
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDownloadRepository
 import com.google.ai.edge.gallery.data.DownloadRepository
+import com.google.ai.edge.gallery.data.room.AppDatabase
+import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.proto.BenchmarkResults
 import com.google.ai.edge.gallery.proto.CutoutCollection
 import com.google.ai.edge.gallery.proto.Settings
 import com.google.ai.edge.gallery.proto.Skills
-import com.google.ai.edge.gallery.proto.StockAnalyzerData
 import com.google.ai.edge.gallery.proto.UserData
 import dagger.Module
 import dagger.Provides
@@ -85,11 +86,18 @@ internal object AppModule {
     return SkillsSerializer
   }
 
-  // Provides the StockAnalyzerSerializer
+  // Provides the AppDatabase
   @Provides
   @Singleton
-  fun provideStockAnalyzerSerializer(): Serializer<StockAnalyzerData> {
-    return StockAnalyzerSerializer
+  fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+    return Room.databaseBuilder(context, AppDatabase::class.java, "app_database").build()
+  }
+
+  // Provides the StockDao
+  @Provides
+  @Singleton
+  fun provideStockDao(database: AppDatabase): StockDao {
+    return database.stockDao()
   }
 
   // Provides DataStore<Settings>
@@ -157,19 +165,6 @@ internal object AppModule {
     )
   }
 
-  // Provides DataStore<StockAnalyzerData>
-  @Provides
-  @Singleton
-  fun provideStockAnalyzerDataStore(
-    @ApplicationContext context: Context,
-    stockAnalyzerSerializer: Serializer<StockAnalyzerData>,
-  ): DataStore<StockAnalyzerData> {
-    return DataStoreFactory.create(
-      serializer = stockAnalyzerSerializer,
-      produceFile = { context.dataStoreFile("stock_analyzer.pb") },
-    )
-  }
-
   // Provides AppLifecycleProvider
   @Provides
   @Singleton
@@ -186,7 +181,6 @@ internal object AppModule {
     cutoutsDataStore: DataStore<CutoutCollection>,
     benchmarkResultsStore: DataStore<BenchmarkResults>,
     skillsDataStore: DataStore<Skills>,
-    stockAnalyzerDataStore: DataStore<StockAnalyzerData>,
   ): DataStoreRepository {
     return DefaultDataStoreRepository(
       dataStore,
@@ -194,7 +188,6 @@ internal object AppModule {
       cutoutsDataStore,
       benchmarkResultsStore,
       skillsDataStore,
-      stockAnalyzerDataStore,
     )
   }
 

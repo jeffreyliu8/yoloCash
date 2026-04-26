@@ -18,7 +18,6 @@ package com.google.ai.edge.gallery.data
 
 import androidx.datastore.core.DataStore
 import com.google.ai.edge.gallery.proto.AccessTokenData
-import com.google.ai.edge.gallery.proto.AlpacaCredential
 import com.google.ai.edge.gallery.proto.BenchmarkResult
 import com.google.ai.edge.gallery.proto.BenchmarkResults
 import com.google.ai.edge.gallery.proto.Cutout
@@ -27,7 +26,6 @@ import com.google.ai.edge.gallery.proto.ImportedModel
 import com.google.ai.edge.gallery.proto.Settings
 import com.google.ai.edge.gallery.proto.Skill
 import com.google.ai.edge.gallery.proto.Skills
-import com.google.ai.edge.gallery.proto.StockAnalyzerData
 import com.google.ai.edge.gallery.proto.Theme
 import com.google.ai.edge.gallery.proto.UserData
 import kotlinx.coroutines.flow.first
@@ -111,18 +109,6 @@ interface DataStoreRepository {
 
   /** Returns whether a promo with the specified ID has been viewed. */
   fun hasViewedPromo(promoId: String): Boolean
-
-  fun addAlpacaCredential(credential: AlpacaCredential)
-
-  fun getAllAlpacaCredentials(): List<AlpacaCredential>
-
-  fun deleteAlpacaCredential(name: String)
-
-  fun addStockToWatchlist(symbol: String)
-
-  fun removeStockFromWatchlist(symbol: String)
-
-  fun getWatchlist(): List<String>
 }
 
 /** Repository for managing data using Proto DataStore. */
@@ -132,7 +118,6 @@ class DefaultDataStoreRepository(
   private val cutoutDataStore: DataStore<CutoutCollection>,
   private val benchmarkResultsDataStore: DataStore<BenchmarkResults>,
   private val skillsDataStore: DataStore<Skills>,
-  private val stockAnalyzerDataStore: DataStore<StockAnalyzerData>,
 ) : DataStoreRepository {
   override fun saveTextInputHistory(history: List<String>) {
     runBlocking {
@@ -447,51 +432,5 @@ class DefaultDataStoreRepository(
       val settings = dataStore.data.first()
       settings.viewedPromoIdList.contains(promoId)
     }
-  }
-
-  override fun addAlpacaCredential(credential: AlpacaCredential) {
-    runBlocking {
-      stockAnalyzerDataStore.updateData { data ->
-        data.toBuilder().addCredentials(credential).build()
-      }
-    }
-  }
-
-  override fun getAllAlpacaCredentials(): List<AlpacaCredential> {
-    return runBlocking { stockAnalyzerDataStore.data.first().credentialsList }
-  }
-
-  override fun deleteAlpacaCredential(name: String) {
-    runBlocking {
-      stockAnalyzerDataStore.updateData { data ->
-        val newList = data.credentialsList.filter { it.name != name }
-        data.toBuilder().clearCredentials().addAllCredentials(newList).build()
-      }
-    }
-  }
-
-  override fun addStockToWatchlist(symbol: String) {
-    runBlocking {
-      stockAnalyzerDataStore.updateData { data ->
-        if (data.watchlistList.contains(symbol)) {
-          data
-        } else {
-          data.toBuilder().addWatchlist(symbol).build()
-        }
-      }
-    }
-  }
-
-  override fun removeStockFromWatchlist(symbol: String) {
-    runBlocking {
-      stockAnalyzerDataStore.updateData { data ->
-        val newList = data.watchlistList.filter { it != symbol }
-        data.toBuilder().clearWatchlist().addAllWatchlist(newList).build()
-      }
-    }
-  }
-
-  override fun getWatchlist(): List<String> {
-    return runBlocking { stockAnalyzerDataStore.data.first().watchlistList }
   }
 }
