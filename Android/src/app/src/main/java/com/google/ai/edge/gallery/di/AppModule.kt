@@ -46,10 +46,36 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import com.google.ai.edge.gallery.data.StockApiService
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal object AppModule {
+
+  // Alpaca paper trading base URL.
+  private const val ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets/"
+
+  // Provides the StockApiService
+  @Provides
+  @Singleton
+  fun provideStockApiService(): StockApiService {
+    val logging = HttpLoggingInterceptor()
+    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+    val httpClient = OkHttpClient.Builder()
+      .addInterceptor(logging)
+      .build()
+
+    return Retrofit.Builder()
+      .baseUrl(ALPACA_PAPER_BASE_URL)
+      .addConverterFactory(GsonConverterFactory.create())
+      .client(httpClient)
+      .build()
+      .create(StockApiService::class.java)
+  }
 
   // Provides the SettingsSerializer
   @Provides

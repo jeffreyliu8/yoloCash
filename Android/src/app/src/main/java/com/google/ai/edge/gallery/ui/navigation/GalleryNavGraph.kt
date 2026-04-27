@@ -87,6 +87,7 @@ import com.google.ai.edge.gallery.ui.modelmanager.ModelInitializationStatusType
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManager
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -100,6 +101,7 @@ private const val ROUTE_BENCHMARK = "benchmark"
 private const val ROUTE_MODEL_MANAGER = "model_manager"
 private const val ROUTE_MY_SETTINGS = "my_settings"
 private const val ROUTE_STOCK_ANALYZER = "stock_analyzer"
+private const val ROUTE_CREDENTIAL_DETAIL = "credential_detail"
 private const val ENTER_ANIMATION_DURATION_MS = 500
 private val ENTER_ANIMATION_EASING = EaseOutExpo
 private const val ENTER_ANIMATION_DELAY_MS = 100
@@ -454,7 +456,22 @@ fun GalleryNavHost(
       enterTransition = { slideEnter() },
       exitTransition = { slideExit() },
     ) {
-      StockAnalyzerScreen(onBackClicked = { navController.navigateUp() })
+      StockAnalyzerScreen(
+        onBackClicked = { navController.navigateUp() },
+        onCredentialClicked = { credentialName ->
+          navController.navigate("$ROUTE_CREDENTIAL_DETAIL/$credentialName")
+        }
+      )
+    }
+
+    // Credential detail page.
+    composable(
+      route = "$ROUTE_CREDENTIAL_DETAIL/{credentialName}",
+      arguments = listOf(navArgument("credentialName") { type = NavType.StringType }),
+      enterTransition = { slideEnter() },
+      exitTransition = { slideExit() },
+    ) {
+      CredentialDetailScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Benchmark creation page.

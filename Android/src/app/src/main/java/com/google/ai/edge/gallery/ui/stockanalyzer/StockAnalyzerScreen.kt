@@ -16,6 +16,7 @@
 
 package com.google.ai.edge.gallery.ui.stockanalyzer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,10 +57,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockAnalyzerScreen(
   onBackClicked: () -> Unit,
+  onCredentialClicked: (String) -> Unit,
   modifier: Modifier = Modifier,
   viewModel: StockAnalyzerViewModel = hiltViewModel(),
 ) {
@@ -101,7 +102,8 @@ fun StockAnalyzerScreen(
         0 -> CredentialsTab(
           credentials = uiState.credentials,
           onAddCredential = { name, key, secret -> viewModel.addCredential(name, key, secret) },
-          onDeleteCredential = { name -> viewModel.deleteCredential(name) }
+          onDeleteCredential = { name -> viewModel.deleteCredential(name) },
+          onCredentialClicked = onCredentialClicked
         )
         1 -> WatchlistTab(
           watchlist = uiState.watchlist,
@@ -118,6 +120,7 @@ fun CredentialsTab(
   credentials: List<AlpacaCredentialEntity>,
   onAddCredential: (String, String, String) -> Unit,
   onDeleteCredential: (String) -> Unit,
+  onCredentialClicked: (String) -> Unit,
 ) {
   var name by remember { mutableStateOf("") }
   var apiKey by remember { mutableStateOf("") }
@@ -180,7 +183,9 @@ fun CredentialsTab(
 
     items(credentials) { credential ->
       Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .clickable { onCredentialClicked(credential.name) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
       ) {
         Row(
