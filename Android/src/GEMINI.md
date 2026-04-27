@@ -10,7 +10,8 @@ AI Edge Gallery is a modular Android application designed to showcase and intera
     *   **UI Framework:** Jetpack Compose with Material 3
     *   **Dependency Injection:** Hilt
     *   **AI Runtimes:** LiteRT (TFLite), AICore, ML Kit GenAI
-    *   **Data Management:** Jetpack DataStore, Protobuf
+    *   **Data Management:** Jetpack DataStore, Protobuf, Room Database
+    *   **Networking:** Retrofit 3, OkHttp 5
     *   **Background Tasks:** WorkManager for model downloads
 
 ## Architecture
@@ -22,6 +23,11 @@ The project follows a modular and extensible architecture:
     *   **Implementation:** See `ExampleCustomTask` for a reference implementation. Tasks should handle their own model lifecycle (`initializeModelFn`, `cleanUpModelFn`) and provide a `MainScreen` composable.
     *   **Existing tasks:** `agentchat`, `mobileactions`, `tinygarden`.
 *   **Model Management:** The `ModelManagerViewModel` centralizes the lifecycle of AI models, including downloading from an online allowlist (hosted on GitHub), initialization for specific backends (CPU, GPU, NPU), and cleanup. Models are associated with tasks via the `Task` and `Model` data classes.
+*   **Stock Analyzer:** A feature for paper trading using the Alpaca API.
+    *   **Features:** Manage multiple Alpaca credentials, track a stock watchlist, and view real-time account information.
+    *   **Persistence:** Uses Room Database for storing credentials and watchlist symbols.
+    *   **Integration:** Communicates with Alpaca's REST API via Retrofit 3.
+*   **MySettings:** A centralized settings screen accessible from the Home screen. It allows users to view all currently downloaded models and access experimental features like the Stock Analyzer.
 *   **Skills System:** An agent-based extensibility mechanism where "skills" are defined using `SKILL.md` files in `assets/skills/`.
     *   **Definition:** Each skill has a `SKILL.md` file containing metadata (name, description), example queries, and instructions for the agent.
     *   **Logic:** Skills can execute custom logic, often through JavaScript running in a WebView (see `assets/skills/*/scripts/index.html`).
@@ -46,5 +52,7 @@ The project follows a modular and extensible architecture:
 *   **DI:** Always use Hilt for dependency injection. Define new `CustomTask` implementations in a Hilt module using `@IntoSet`.
 *   **UI:** Use Jetpack Compose for all new UI components. Follow the established `GalleryTheme`.
 *   **Models:** Models are dynamically loaded. For local testing, you can place a `model_allowlist_test.json` in `/data/local/tmp/`.
+*   **Persistence:** Use Jetpack DataStore for simple key-value pairs and app settings. Use Room Database for complex, relational data (e.g., Stock Analyzer data).
+*   **Networking:** Use Retrofit 3 for all REST API integrations. Interfaces should be defined in the `data` package and provided via Hilt.
 *   **Protobuf:** Use Protobuf for structured data that needs to be persisted or sent over the wire. Proto files are located in `app/src/main/proto/`.
 *   **Formatting:** Follow standard Kotlin coding styles. The project uses KSP and Kapt for code generation.
