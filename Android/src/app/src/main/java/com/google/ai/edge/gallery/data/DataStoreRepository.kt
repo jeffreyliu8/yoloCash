@@ -109,6 +109,10 @@ interface DataStoreRepository {
 
   /** Returns whether a promo with the specified ID has been viewed. */
   fun hasViewedPromo(promoId: String): Boolean
+
+  fun isTimerWorkerEnabled(): Boolean
+
+  fun setTimerWorkerEnabled(enabled: Boolean)
 }
 
 /** Repository for managing data using Proto DataStore. */
@@ -431,6 +435,21 @@ class DefaultDataStoreRepository(
     return runBlocking {
       val settings = dataStore.data.first()
       settings.viewedPromoIdList.contains(promoId)
+    }
+  }
+
+  override fun isTimerWorkerEnabled(): Boolean {
+    return runBlocking {
+      val settings = dataStore.data.first()
+      settings.featureFlagsMap["timer_worker"] ?: false
+    }
+  }
+
+  override fun setTimerWorkerEnabled(enabled: Boolean) {
+    runBlocking {
+      dataStore.updateData { settings ->
+        settings.toBuilder().putFeatureFlags("timer_worker", enabled).build()
+      }
     }
   }
 }
