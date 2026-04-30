@@ -22,6 +22,8 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStoreFile
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.ai.edge.gallery.AppLifecycleProvider
 import com.google.ai.edge.gallery.BenchmarkResultsSerializer
 import com.google.ai.edge.gallery.CutoutsSerializer
@@ -56,174 +58,183 @@ import com.google.ai.edge.gallery.data.StockApiService
 @InstallIn(SingletonComponent::class)
 internal object AppModule {
 
-  // Alpaca paper trading base URL.
-  private const val ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets/"
+    // Alpaca paper trading base URL.
+    private const val ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets/"
 
-  // Provides the StockApiService
-  @Provides
-  @Singleton
-  fun provideStockApiService(): StockApiService {
-    val logging = HttpLoggingInterceptor()
-    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-    val httpClient = OkHttpClient.Builder()
-      .addInterceptor(logging)
-      .build()
+    // Provides the StockApiService
+    @Provides
+    @Singleton
+    fun provideStockApiService(): StockApiService {
+        val logging = HttpLoggingInterceptor()
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+        val httpClient = OkHttpClient.Builder()
+            .addInterceptor(logging)
+            .build()
 
-    return Retrofit.Builder()
-      .baseUrl(ALPACA_PAPER_BASE_URL)
-      .addConverterFactory(GsonConverterFactory.create())
-      .client(httpClient)
-      .build()
-      .create(StockApiService::class.java)
-  }
+        return Retrofit.Builder()
+            .baseUrl(ALPACA_PAPER_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpClient)
+            .build()
+            .create(StockApiService::class.java)
+    }
 
-  // Provides the SettingsSerializer
-  @Provides
-  @Singleton
-  fun provideSettingsSerializer(): Serializer<Settings> {
-    return SettingsSerializer
-  }
+    // Provides the SettingsSerializer
+    @Provides
+    @Singleton
+    fun provideSettingsSerializer(): Serializer<Settings> {
+        return SettingsSerializer
+    }
 
-  // Provides the CutoutSerializer
-  @Provides
-  @Singleton
-  fun provideCutoutSerializer(): Serializer<CutoutCollection> {
-    return CutoutsSerializer
-  }
+    // Provides the CutoutSerializer
+    @Provides
+    @Singleton
+    fun provideCutoutSerializer(): Serializer<CutoutCollection> {
+        return CutoutsSerializer
+    }
 
-  // Provides the UserDataSerializer
-  @Provides
-  @Singleton
-  fun provideUserDataSerializer(): Serializer<UserData> {
-    return UserDataSerializer
-  }
+    // Provides the UserDataSerializer
+    @Provides
+    @Singleton
+    fun provideUserDataSerializer(): Serializer<UserData> {
+        return UserDataSerializer
+    }
 
-  // Provides the BenchmarkResultsSerializer
-  @Provides
-  @Singleton
-  fun provideBenchmarkResultsSerializer(): Serializer<BenchmarkResults> {
-    return BenchmarkResultsSerializer
-  }
+    // Provides the BenchmarkResultsSerializer
+    @Provides
+    @Singleton
+    fun provideBenchmarkResultsSerializer(): Serializer<BenchmarkResults> {
+        return BenchmarkResultsSerializer
+    }
 
-  // Provides the SkillsSerializer
-  @Provides
-  @Singleton
-  fun provideSkillsSerializer(): Serializer<Skills> {
-    return SkillsSerializer
-  }
+    // Provides the SkillsSerializer
+    @Provides
+    @Singleton
+    fun provideSkillsSerializer(): Serializer<Skills> {
+        return SkillsSerializer
+    }
 
-  // Provides the AppDatabase
-  @Provides
-  @Singleton
-  fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-    return Room.databaseBuilder(context, AppDatabase::class.java, "app_database").build()
-  }
+    // Provides the AppDatabase
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "app_database")
+            .addCallback(object : RoomDatabase.Callback() {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    super.onCreate(db)
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 1', 'PKMN74Y7PMLTGKIGBKL4VV7DUF', 'CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C')")
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 2', 'PK3SIFRQMOJLSE443UBGHOZSCY', 'DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4')")
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 3', 'PKGETVNBNXWAY44G7JOHKT3BYV', 'ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u')")
+                }
+            })
+            .build()
+    }
 
-  // Provides the StockDao
-  @Provides
-  @Singleton
-  fun provideStockDao(database: AppDatabase): StockDao {
-    return database.stockDao()
-  }
+    // Provides the StockDao
+    @Provides
+    @Singleton
+    fun provideStockDao(database: AppDatabase): StockDao {
+        return database.stockDao()
+    }
 
-  // Provides DataStore<Settings>
-  @Provides
-  @Singleton
-  fun provideSettingsDataStore(
-    @ApplicationContext context: Context,
-    settingsSerializer: Serializer<Settings>,
-  ): DataStore<Settings> {
-    return DataStoreFactory.create(
-      serializer = settingsSerializer,
-      produceFile = { context.dataStoreFile("settings.pb") },
-    )
-  }
+    // Provides DataStore<Settings>
+    @Provides
+    @Singleton
+    fun provideSettingsDataStore(
+        @ApplicationContext context: Context,
+        settingsSerializer: Serializer<Settings>,
+    ): DataStore<Settings> {
+        return DataStoreFactory.create(
+            serializer = settingsSerializer,
+            produceFile = { context.dataStoreFile("settings.pb") },
+        )
+    }
 
-  // Provides DataStore<CutoutCollection>
-  @Provides
-  @Singleton
-  fun provideCutoutsDataStore(
-    @ApplicationContext context: Context,
-    cutoutsSerializer: Serializer<CutoutCollection>,
-  ): DataStore<CutoutCollection> {
-    return DataStoreFactory.create(
-      serializer = cutoutsSerializer,
-      produceFile = { context.dataStoreFile("cutouts.pb") },
-    )
-  }
+    // Provides DataStore<CutoutCollection>
+    @Provides
+    @Singleton
+    fun provideCutoutsDataStore(
+        @ApplicationContext context: Context,
+        cutoutsSerializer: Serializer<CutoutCollection>,
+    ): DataStore<CutoutCollection> {
+        return DataStoreFactory.create(
+            serializer = cutoutsSerializer,
+            produceFile = { context.dataStoreFile("cutouts.pb") },
+        )
+    }
 
-  // Provides DataStore<UserData>
-  @Provides
-  @Singleton
-  fun provideUserDataDataStore(
-    @ApplicationContext context: Context,
-    userDataSerializer: Serializer<UserData>,
-  ): DataStore<UserData> {
-    return DataStoreFactory.create(
-      serializer = userDataSerializer,
-      produceFile = { context.dataStoreFile("user_data.pb") },
-    )
-  }
+    // Provides DataStore<UserData>
+    @Provides
+    @Singleton
+    fun provideUserDataDataStore(
+        @ApplicationContext context: Context,
+        userDataSerializer: Serializer<UserData>,
+    ): DataStore<UserData> {
+        return DataStoreFactory.create(
+            serializer = userDataSerializer,
+            produceFile = { context.dataStoreFile("user_data.pb") },
+        )
+    }
 
-  // Provides DataStore<BenchmarkResults>
-  @Provides
-  @Singleton
-  fun provideBenchmarkResultsDataStore(
-    @ApplicationContext context: Context,
-    benchmarkResultsSerializer: Serializer<BenchmarkResults>,
-  ): DataStore<BenchmarkResults> {
-    return DataStoreFactory.create(
-      serializer = benchmarkResultsSerializer,
-      produceFile = { context.dataStoreFile("benchmark_results.pb") },
-    )
-  }
+    // Provides DataStore<BenchmarkResults>
+    @Provides
+    @Singleton
+    fun provideBenchmarkResultsDataStore(
+        @ApplicationContext context: Context,
+        benchmarkResultsSerializer: Serializer<BenchmarkResults>,
+    ): DataStore<BenchmarkResults> {
+        return DataStoreFactory.create(
+            serializer = benchmarkResultsSerializer,
+            produceFile = { context.dataStoreFile("benchmark_results.pb") },
+        )
+    }
 
-  // Provides DataStore<Skills>
-  @Provides
-  @Singleton
-  fun provideSkillsDataStore(
-    @ApplicationContext context: Context,
-    skillsSerializer: Serializer<Skills>,
-  ): DataStore<Skills> {
-    return DataStoreFactory.create(
-      serializer = skillsSerializer,
-      produceFile = { context.dataStoreFile("skills.pb") },
-    )
-  }
+    // Provides DataStore<Skills>
+    @Provides
+    @Singleton
+    fun provideSkillsDataStore(
+        @ApplicationContext context: Context,
+        skillsSerializer: Serializer<Skills>,
+    ): DataStore<Skills> {
+        return DataStoreFactory.create(
+            serializer = skillsSerializer,
+            produceFile = { context.dataStoreFile("skills.pb") },
+        )
+    }
 
-  // Provides AppLifecycleProvider
-  @Provides
-  @Singleton
-  fun provideAppLifecycleProvider(): AppLifecycleProvider {
-    return GalleryLifecycleProvider()
-  }
+    // Provides AppLifecycleProvider
+    @Provides
+    @Singleton
+    fun provideAppLifecycleProvider(): AppLifecycleProvider {
+        return GalleryLifecycleProvider()
+    }
 
-  // Provides DataStoreRepository
-  @Provides
-  @Singleton
-  fun provideDataStoreRepository(
-    dataStore: DataStore<Settings>,
-    userDataDataStore: DataStore<UserData>,
-    cutoutsDataStore: DataStore<CutoutCollection>,
-    benchmarkResultsStore: DataStore<BenchmarkResults>,
-    skillsDataStore: DataStore<Skills>,
-  ): DataStoreRepository {
-    return DefaultDataStoreRepository(
-      dataStore,
-      userDataDataStore,
-      cutoutsDataStore,
-      benchmarkResultsStore,
-      skillsDataStore,
-    )
-  }
+    // Provides DataStoreRepository
+    @Provides
+    @Singleton
+    fun provideDataStoreRepository(
+        dataStore: DataStore<Settings>,
+        userDataDataStore: DataStore<UserData>,
+        cutoutsDataStore: DataStore<CutoutCollection>,
+        benchmarkResultsStore: DataStore<BenchmarkResults>,
+        skillsDataStore: DataStore<Skills>,
+    ): DataStoreRepository {
+        return DefaultDataStoreRepository(
+            dataStore,
+            userDataDataStore,
+            cutoutsDataStore,
+            benchmarkResultsStore,
+            skillsDataStore,
+        )
+    }
 
-  // Provides DownloadRepository
-  @Provides
-  @Singleton
-  fun provideDownloadRepository(
-    @ApplicationContext context: Context,
-    lifecycleProvider: AppLifecycleProvider,
-  ): DownloadRepository {
-    return DefaultDownloadRepository(context, lifecycleProvider)
-  }
+    // Provides DownloadRepository
+    @Provides
+    @Singleton
+    fun provideDownloadRepository(
+        @ApplicationContext context: Context,
+        lifecycleProvider: AppLifecycleProvider,
+    ): DownloadRepository {
+        return DefaultDownloadRepository(context, lifecycleProvider)
+    }
 }
