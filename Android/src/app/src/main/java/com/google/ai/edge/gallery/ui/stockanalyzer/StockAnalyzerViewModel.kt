@@ -20,62 +20,28 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
 import com.google.ai.edge.gallery.data.room.StockDao
-import com.google.ai.edge.gallery.data.room.WatchlistStockEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 data class StockAnalyzerUiState(
-  val credentials: List<AlpacaCredentialEntity> = emptyList(),
-  val watchlist: List<String> = emptyList(),
+    val credentials: List<AlpacaCredentialEntity> = emptyList(),
 )
 
 @HiltViewModel
 class StockAnalyzerViewModel @Inject constructor(
-  private val stockDao: StockDao,
+    stockDao: StockDao,
 ) : ViewModel() {
 
-  val uiState: StateFlow<StockAnalyzerUiState> = combine(
-    stockDao.getAllCredentials(),
-    stockDao.getWatchlist()
-  ) { credentials, watchlist ->
-    StockAnalyzerUiState(
-      credentials = credentials,
-      watchlist = watchlist.map { it.symbol }
-    )
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.WhileSubscribed(5000),
-    initialValue = StockAnalyzerUiState()
-  )
-
-  fun addCredential(name: String, apiKey: String, apiSecret: String) {
-    viewModelScope.launch {
-      stockDao.insertCredential(
-        AlpacaCredentialEntity(name, apiKey, apiSecret)
-      )
-    }
-  }
-
-  fun deleteCredential(name: String) {
-    viewModelScope.launch {
-      stockDao.deleteCredential(name)
-    }
-  }
-
-  fun addToWatchlist(symbol: String) {
-    viewModelScope.launch {
-      stockDao.insertStock(WatchlistStockEntity(symbol.uppercase()))
-    }
-  }
-
-  fun removeFromWatchlist(symbol: String) {
-    viewModelScope.launch {
-      stockDao.deleteStock(symbol)
-    }
-  }
+    val uiState: StateFlow<StockAnalyzerUiState> = stockDao.getAllCredentials()
+        .map { credentials ->
+            StockAnalyzerUiState(credentials = credentials)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = StockAnalyzerUiState()
+        )
 }

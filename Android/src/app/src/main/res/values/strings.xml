@@ -23,6 +23,7 @@
   <string name="api_key" translatable="false">API Key</string>
   <string name="api_secret" translatable="false">API Secret</string>
   <string name="credentials" translatable="false">Credentials</string>
+  <string name="not_configured" translatable="false">Not configured</string>
   <string name="watchlist" translatable="false">Watchlist</string>
   <string name="stock_symbol" translatable="false">Stock Symbol (e.g. AAPL)</string>
   <string name="added" translatable="false">Added</string>

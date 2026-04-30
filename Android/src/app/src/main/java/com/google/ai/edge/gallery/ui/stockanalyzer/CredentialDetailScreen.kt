@@ -24,10 +24,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -39,15 +37,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -117,14 +111,6 @@ fun CredentialDetailScreen(
               AccountSummaryCard(account)
             }
           }
-
-          item {
-            WatchlistManagementSection(
-              watchlist = uiState.watchlist,
-              onAddStock = { viewModel.addToWatchlist(it) },
-              onRemoveStock = { viewModel.removeFromWatchlist(it) }
-            )
-          }
         }
       }
     }
@@ -161,69 +147,5 @@ fun SummaryRow(label: String, value: String) {
   ) {
     Text(label, style = MaterialTheme.typography.bodyMedium)
     Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-  }
-}
-
-@Composable
-fun WatchlistManagementSection(
-  watchlist: List<String>,
-  onAddStock: (String) -> Unit,
-  onRemoveStock: (String) -> Unit,
-) {
-  var symbol by remember { mutableStateOf("") }
-
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Text("Manage Watchlist", style = MaterialTheme.typography.titleLarge)
-    
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      OutlinedTextField(
-        value = symbol,
-        onValueChange = { symbol = it },
-        label = { Text(stringResource(R.string.stock_symbol)) },
-        modifier = Modifier.weight(1f)
-      )
-      Button(onClick = {
-        if (symbol.isNotBlank()) {
-          onAddStock(symbol)
-          symbol = ""
-        }
-      }) {
-        Text(stringResource(R.string.add))
-      }
-    }
-
-    Card(
-      modifier = Modifier.fillMaxWidth(),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-      Column(modifier = Modifier.padding(8.dp)) {
-        if (watchlist.isEmpty()) {
-          Text(
-            "Watchlist is empty",
-            modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.bodyMedium
-          )
-        } else {
-          watchlist.forEach { item ->
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Text(item, style = MaterialTheme.typography.titleMedium)
-              IconButton(onClick = { onRemoveStock(item) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }

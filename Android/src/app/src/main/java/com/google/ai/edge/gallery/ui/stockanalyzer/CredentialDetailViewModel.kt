@@ -22,13 +22,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.ai.edge.gallery.data.AlpacaAccount
 import com.google.ai.edge.gallery.data.StockApiService
 import com.google.ai.edge.gallery.data.room.StockDao
-import com.google.ai.edge.gallery.data.room.WatchlistStockEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -37,7 +35,6 @@ import kotlinx.coroutines.launch
 data class CredentialDetailUiState(
   val credentialName: String = "",
   val account: AlpacaAccount? = null,
-  val watchlist: List<String> = emptyList(),
   val isLoading: Boolean = false,
   val error: String? = null,
 )
@@ -57,14 +54,12 @@ class CredentialDetailViewModel @Inject constructor(
 
   val uiState: StateFlow<CredentialDetailUiState> = combine(
     _accountInfo,
-    stockDao.getWatchlist(),
     _isLoading,
     _error
-  ) { account, watchlist, isLoading, error ->
+  ) { account, isLoading, error ->
     CredentialDetailUiState(
       credentialName = credentialName,
       account = account,
-      watchlist = watchlist.map { it.symbol },
       isLoading = isLoading,
       error = error
     )
@@ -96,18 +91,6 @@ class CredentialDetailViewModel @Inject constructor(
       } finally {
         _isLoading.value = false
       }
-    }
-  }
-
-  fun addToWatchlist(symbol: String) {
-    viewModelScope.launch {
-      stockDao.insertStock(WatchlistStockEntity(symbol.uppercase()))
-    }
-  }
-
-  fun removeFromWatchlist(symbol: String) {
-    viewModelScope.launch {
-      stockDao.deleteStock(symbol)
     }
   }
 }
