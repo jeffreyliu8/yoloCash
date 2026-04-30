@@ -50,6 +50,7 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("debug")
     }
@@ -58,10 +59,7 @@ android {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
-//  kotlinOptions {
-//    jvmTarget = "17"
-//    freeCompilerArgs += "-Xcontext-receivers"
-//  }
+
   buildFeatures {
     compose = true
     buildConfig = true
