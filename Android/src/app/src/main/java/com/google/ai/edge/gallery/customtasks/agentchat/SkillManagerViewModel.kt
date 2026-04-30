@@ -47,9 +47,11 @@ import com.google.ai.edge.gallery.proto.Skill
 import com.google.ai.edge.litertlm.Contents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import java.io.File
-import java.io.InputStreamReader
-import java.net.URL
 import javax.inject.Inject
 import kotlin.collections.joinToString
 import kotlin.io.encoding.Base64
@@ -136,6 +138,7 @@ class SkillManagerViewModel
 constructor(
   val dataStoreRepository: DataStoreRepository,
   @ApplicationContext private val context: Context,
+  private val httpClient: HttpClient,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(SkillManagerUiState())
   val uiState = _uiState.asStateFlow()
@@ -243,7 +246,7 @@ constructor(
         val url = SKILL_ALLOWLIST_URL
         Log.d(TAG, "Fetching skill allowlist from: $url")
         val result =
-          getJsonResponse<SkillAllowlist>(url)
+          getJsonResponse<SkillAllowlist>(url, httpClient)
             ?: throw Exception("Failed to fetch or parse JSON from $url")
 
         val allowlist = result.jsonObj
@@ -293,8 +296,12 @@ constructor(
         // 2. Read url/SKILL.md.
         val mdContent =
           try {
-            val connection = URL(skillMdUrl).openConnection()
-            InputStreamReader(connection.getInputStream()).use { reader -> reader.readText() }
+            val response = httpClient.get(skillMdUrl)
+            if (response.status == HttpStatusCode.OK) {
+              response.bodyAsText()
+            } else {
+              throw Exception("HTTP error: ${response.status}")
+            }
           } catch (e: Exception) {
             Log.e(TAG, "Error fetching SKILL.md from $skillMdUrl", e)
             val error = "Failed to fetch SKILL.md: ${e.message}"

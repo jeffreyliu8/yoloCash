@@ -16,35 +16,34 @@
 
 package com.google.ai.edge.gallery.data
 
-import com.google.gson.annotations.SerializedName
-import retrofit2.http.GET
-import retrofit2.http.Header
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class AlpacaAccount(
-  @SerializedName("id") val id: String,
-  @SerializedName("account_number") val accountNumber: String,
-  @SerializedName("status") val status: String,
-  @SerializedName("currency") val currency: String,
-  @SerializedName("buying_power") val buyingPower: String,
-  @SerializedName("regt_buying_power") val regtBuyingPower: String,
-  @SerializedName("daytrading_buying_power") val daytradingBuyingPower: String,
-  @SerializedName("cash") val cash: String,
-  @SerializedName("portfolio_value") val portfolioValue: String,
-  @SerializedName("equity") val equity: String,
-  @SerializedName("last_equity") val lastEquity: String,
-  @SerializedName("long_market_value") val longMarketValue: String,
-  @SerializedName("short_market_value") val shortMarketValue: String,
-  @SerializedName("initial_margin") val initialMargin: String,
-  @SerializedName("maintenance_margin") val maintenanceMargin: String,
-  @SerializedName("last_maintenance_margin") val lastMaintenanceMargin: String,
-  @SerializedName("sma") val sma: String,
-  @SerializedName("daytrade_count") val daytradeCount: Int,
+  @SerialName("id") val id: String,
+  @SerialName("account_number") val accountNumber: String,
+  @SerialName("status") val status: String,
+  @SerialName("currency") val currency: String,
+  @SerialName("buying_power") val buyingPower: String,
+  @SerialName("regt_buying_power") val regtBuyingPower: String,
+  @SerialName("daytrading_buying_power") val daytradingBuyingPower: String,
+  @SerialName("cash") val cash: String,
+  @SerialName("portfolio_value") val portfolioValue: String,
+  @SerialName("equity") val equity: String,
+  @SerialName("last_equity") val lastEquity: String,
+  @SerialName("long_market_value") val longMarketValue: String,
+  @SerialName("short_market_value") val shortMarketValue: String,
+  @SerialName("initial_margin") val initialMargin: String,
+  @SerialName("maintenance_margin") val maintenanceMargin: String,
+  @SerialName("last_maintenance_margin") val lastMaintenanceMargin: String,
+  @SerialName("sma") val sma: String,
+  @SerialName("daytrade_count") val daytradeCount: Int,
 )
 
 interface StockApiService {
-  @GET("v2/account")
   suspend fun getAccount(
-    @Header("APCA-API-KEY-ID") apiKey: String,
-    @Header("APCA-API-SECRET-KEY") apiSecret: String,
+    apiKey: String,
+    apiSecret: String,
   ): AlpacaAccount
 }

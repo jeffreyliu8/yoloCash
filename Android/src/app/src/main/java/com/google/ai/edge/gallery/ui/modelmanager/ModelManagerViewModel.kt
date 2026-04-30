@@ -55,13 +55,14 @@ import com.google.ai.edge.gallery.proto.AccessTokenData
 import com.google.ai.edge.gallery.proto.ImportedModel
 import com.google.ai.edge.gallery.proto.Theme
 import com.google.ai.edge.gallery.runtime.aicore.AICoreModelHelper
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import kotlinx.serialization.json.Json
+import io.ktor.client.HttpClient
+import io.ktor.client.request.head
+import io.ktor.client.request.header
+import kotlinx.serialization.SerializationException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import javax.inject.Inject
 import kotlin.collections.sortedWith
 import kotlinx.coroutines.Dispatchers
@@ -197,6 +198,8 @@ constructor(
     private val lifecycleProvider: AppLifecycleProvider,
     private val customTasks: Set<@JvmSuppressWildcards CustomTask>,
     @ApplicationContext private val context: Context,
+    private val json: Json,
+    private val httpClient: HttpClient,
 ) : ViewModel() {
     private val externalFilesDir = context.getExternalFilesDir(null)
     protected val _uiState = MutableStateFlow(createEmptyUiState())
@@ -605,20 +608,19 @@ constructor(
         dataStoreRepository.saveTheme(theme = theme)
     }
 
-    fun getModelUrlResponse(model: Model, accessToken: String? = null): Int {
-        try {
-            val url = URL(model.url)
-            val connection = url.openConnection() as HttpURLConnection
-            if (accessToken != null) {
-                connection.setRequestProperty("Authorization", "Bearer $accessToken")
-            }
-            connection.connect()
+    suspend fun getModelUrlResponse(model: Model, accessToken: String? = null): Int {
 
+        return try {
+            val response = httpClient.head(model.url) {
+                if (accessToken != null) {
+                    header("Authorization", "Bearer $accessToken")
+                }
+            }
             // Report the result.
-            return connection.responseCode
+            response.status.value
         } catch (e: Exception) {
             Log.e(TAG, "$e")
-            return -1
+            -1
         }
     }
 
@@ -904,11 +906,10 @@ constructor(
                 // Local test only.
                 if (TEST_MODEL_ALLOW_LIST.isNotEmpty()) {
                     Log.d(TAG, "Loading local model allowlist for testing.")
-                    val gson = Gson()
                     try {
                         modelAllowlist =
-                            gson.fromJson(TEST_MODEL_ALLOW_LIST, ModelAllowlist::class.java)
-                    } catch (e: JsonSyntaxException) {
+                            json.decodeFromString<ModelAllowlist>(TEST_MODEL_ALLOW_LIST)
+                    } catch (e: SerializationException) {
                         Log.e(TAG, "Failed to parse local test json", e)
                     }
                 }
@@ -918,7 +919,7 @@ constructor(
                     val version = BuildConfig.VERSION_NAME.replace(".", "_")
                     val url = getAllowlistUrl(version)
                     Log.d(TAG, "Loading model allowlist from internet. Url: $url")
-                    val data = getJsonResponse<ModelAllowlist>(url = url)
+                    val data = getJsonResponse<ModelAllowlist>(url = url, client = httpClient)
                     modelAllowlist = data?.jsonObj
 
                     if (modelAllowlist == null) {
@@ -1081,8 +1082,7 @@ constructor(
                 val content = file.readText()
                 Log.d(TAG, "Model allowlist content from local file: $content")
 
-                val gson = Gson()
-                return gson.fromJson(content, ModelAllowlist::class.java)
+                return json.decodeFromString<ModelAllowlist>(content)
             }
         } catch (e: Exception) {
             Log.e(TAG, "failed to read model allowlist from disk", e)

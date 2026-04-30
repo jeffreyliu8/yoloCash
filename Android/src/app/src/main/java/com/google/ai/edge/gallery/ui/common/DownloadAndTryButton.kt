@@ -84,7 +84,7 @@ import com.google.ai.edge.gallery.ui.common.tos.TosViewModel
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.modelmanager.TokenRequestResultType
 import com.google.ai.edge.gallery.ui.modelmanager.TokenStatus
-import java.net.HttpURLConnection
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -208,7 +208,7 @@ fun DownloadAndTryButton(
                   modelManagerViewModel.getModelUrlResponse(
                     model = model,
                     accessToken = modelManagerViewModel.curAccessToken,
-                  ) == HttpURLConnection.HTTP_FORBIDDEN
+                  ) == HttpStatusCode.Forbidden.value
                 ) {
                   Log.d(TAG, "Model '${model.name}' needs user agreement ack.")
                   showAgreementAckSheet = true
@@ -269,7 +269,7 @@ fun DownloadAndTryButton(
             "Model '${model.name}' is from HuggingFace. Checking if the url needs auth to download",
           )
           val firstResponseCode = modelManagerViewModel.getModelUrlResponse(model = model)
-          if (firstResponseCode == HttpURLConnection.HTTP_OK) {
+          if (firstResponseCode == HttpStatusCode.OK.value) {
             Log.d(TAG, "Model '${model.name}' doesn't need auth. Start downloading the model...")
             withContext(Dispatchers.Main) { startDownload(null) }
             return@launch
@@ -301,12 +301,12 @@ fun DownloadAndTryButton(
                   model = model,
                   accessToken = tokenStatusAndData.data!!.accessToken,
                 )
-              if (responseCode == HttpURLConnection.HTTP_OK) {
+              if (responseCode == HttpStatusCode.OK.value) {
                 // Download url is accessible. Download the model.
                 Log.d(TAG, "Download url is accessible with the current token.")
 
                 withContext(Dispatchers.Main) {
-                  startDownload(tokenStatusAndData.data!!.accessToken)
+                  startDownload(tokenStatusAndData.data.accessToken)
                 }
               }
               // Download url is NOT accessible. Request a new token.

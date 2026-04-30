@@ -37,11 +37,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.exifinterface.media.ExifInterface
 import com.google.ai.edge.gallery.data.SAMPLE_RATE
-import com.google.gson.Gson
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileInputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -51,6 +59,27 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 private const val TAG = "AGUtils"
+
+val galleryJson = Json {
+  ignoreUnknownKeys = true
+  isLenient = false
+}
+
+val defaultHttpClient by lazy {
+  HttpClient(OkHttp) {
+    install(ContentNegotiation) {
+      json(galleryJson)
+    }
+    install(Logging) {
+      logger = object : Logger {
+        override fun log(message: String) {
+          Log.v("DefaultHttpClient", message)
+        }
+      }
+      level = LogLevel.HEADERS
+    }
+  }
+}
 
 const val LOCAL_URL_BASE = "https://appassets.androidplatform.net"
 
@@ -66,38 +95,32 @@ fun processLlmResponse(response: String): String {
   return response.replace("\\n", "\n")
 }
 
-inline fun <reified T> getJsonResponse(url: String): JsonObjAndTextContent<T>? {
-  try {
-    val connection = URL(url).openConnection() as HttpURLConnection
-    connection.requestMethod = "GET"
-    connection.connect()
+/** Fetches a JSON response from the given [url] and parses it into an object of type [T]. */
+suspend inline fun <reified T> getJsonResponse(
+  url: String,
+  client: HttpClient = defaultHttpClient,
+): JsonObjAndTextContent<T>? {
+  return try {
+    val response = client.get(url)
+    if (response.status == HttpStatusCode.OK) {
+      val textContent = response.bodyAsText()
 
-    val responseCode = connection.responseCode
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      val inputStream = connection.inputStream
-      val response = inputStream.bufferedReader().use { it.readText() }
-
-      val jsonObj = parseJson<T>(response)
-      return if (jsonObj != null) {
-        JsonObjAndTextContent(jsonObj = jsonObj, textContent = response)
-      } else {
-        null
-      }
+      val jsonObj = galleryJson.decodeFromString<T>(textContent)
+      JsonObjAndTextContent(jsonObj = jsonObj, textContent = textContent)
     } else {
-      Log.e("AGUtils", "HTTP error: $responseCode")
+      Log.e("AGUtils", "HTTP error: ${response.status}")
+      null
     }
   } catch (e: Exception) {
     Log.e("AGUtils", "Error when getting or parsing json response", e)
+    null
   }
-
-  return null
 }
 
-/** Parses a JSON string into an object of type [T] using Gson. */
+/** Parses a JSON string into an object of type [T] using Kotlin Serialization. */
 inline fun <reified T> parseJson(response: String): T? {
   return try {
-    val gson = Gson()
-    gson.fromJson(response, T::class.java)
+    galleryJson.decodeFromString<T>(response)
   } catch (e: Exception) {
     Log.e("AGUtils", "Error parsing JSON string", e)
     null

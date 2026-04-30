@@ -17,9 +17,11 @@
 package com.google.ai.edge.gallery.data
 
 import android.content.Context
-import com.google.gson.annotations.SerializedName
 import java.io.File
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ModelDataFile(
   val name: String,
   val url: String,
@@ -30,31 +32,37 @@ data class ModelDataFile(
 const val IMPORTS_DIR = "__imports"
 private val NORMALIZE_NAME_REGEX = Regex("[^a-zA-Z0-9]")
 
+@Serializable
 data class PromptTemplate(val title: String, val description: String, val prompt: String)
 
+@Serializable
 enum class ModelCapability {
-  @SerializedName("llm_thinking") LLM_THINKING
+  @SerialName("llm_thinking") LLM_THINKING
 }
 
+@Serializable
 enum class RuntimeType {
-  @SerializedName("unknown") UNKNOWN,
-  @SerializedName("litert_lm") LITERT_LM,
-  @SerializedName("aicore") AICORE,
+  @SerialName("unknown") UNKNOWN,
+  @SerialName("litert_lm") LITERT_LM,
+  @SerialName("aicore") AICORE,
 }
 
+@Serializable
 enum class AICoreModelReleaseStage {
-  @SerializedName("stable") STABLE,
-  @SerializedName("preview") PREVIEW,
+  @SerialName("stable") STABLE,
+  @SerialName("preview") PREVIEW,
 }
 
+@Serializable
 enum class AICoreModelPreference {
-  @SerializedName("fast") FAST,
-  @SerializedName("full") FULL,
+  @SerialName("fast") FAST,
+  @SerialName("full") FULL,
 }
 
+@Serializable
 data class ModelFile(
-  @SerializedName("fileName") val fileName: String,
-  @SerializedName("commitHash") val commitHash: String,
+  @SerialName("fileName") val fileName: String,
+  @SerialName("commitHash") val commitHash: String,
 )
 
 /**

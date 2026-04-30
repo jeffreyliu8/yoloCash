@@ -16,19 +16,19 @@
 
 package com.google.ai.edge.gallery.data
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 
-/** A skill in the skill allowlist. */
-@Serializable
-data class AllowedSkill(
-  val name: String,
-  val description: String,
-  @SerialName("skillUrl") val skillUrl: String,
-  @SerialName("attributionLabel") val attributionLabel: String? = null,
-  @SerialName("attributionUrl") val attributionUrl: String? = null,
-)
-
-/** The skill allowlist. */
-@Serializable
-data class SkillAllowlist(@SerialName("featuredSkills") val featuredSkills: List<AllowedSkill>)
+class KtorStockApiService(
+    private val client: HttpClient,
+    private val baseUrl: String
+) : StockApiService {
+    override suspend fun getAccount(apiKey: String, apiSecret: String): AlpacaAccount {
+        return client.get("${baseUrl}v2/account") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+    }
+}
