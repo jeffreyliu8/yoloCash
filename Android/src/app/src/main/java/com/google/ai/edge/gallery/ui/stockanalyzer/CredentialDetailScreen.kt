@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,98 +54,100 @@ import com.google.ai.edge.gallery.data.AlpacaAccount
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialDetailScreen(
-  onBackClicked: () -> Unit,
-  modifier: Modifier = Modifier,
-  viewModel: CredentialDetailViewModel = hiltViewModel(),
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: CredentialDetailViewModel = hiltViewModel(),
 ) {
-  val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-  Scaffold(
-    topBar = {
-      CenterAlignedTopAppBar(
-        title = { Text(uiState.credentialName) },
-        navigationIcon = {
-          IconButton(onClick = onBackClicked) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-              contentDescription = stringResource(R.string.cd_navigate_back_icon),
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(uiState.credentialName) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClicked) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_navigate_back_icon),
+                        )
+                    }
+                }
             )
-          }
-        },
-        actions = {
-          IconButton(onClick = { viewModel.fetchAccountInfo() }) {
-            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-          }
         }
-      )
-    }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-    ) {
-      if (uiState.isLoading && uiState.account == null) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-      } else if (uiState.error != null && uiState.account == null) {
-        Column(
-          modifier = Modifier
-            .align(Alignment.Center)
-            .padding(16.dp),
-          horizontalAlignment = Alignment.CenterHorizontally
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = { viewModel.fetchAccountInfo() },
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(innerPadding)
         ) {
-          Text(uiState.error!!, color = MaterialTheme.colorScheme.error)
-          Button(onClick = { viewModel.fetchAccountInfo() }, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Retry")
-          }
-        }
-      } else {
-        LazyColumn(
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-          verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-          uiState.account?.let { account ->
-            item {
-              AccountSummaryCard(account)
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (uiState.isLoading && uiState.account == null) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (uiState.error != null && uiState.account == null) {
+                    Column(
+                        modifier = Modifier
+                          .align(Alignment.Center)
+                          .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(uiState.error!!, color = MaterialTheme.colorScheme.error)
+                        Button(
+                            onClick = { viewModel.fetchAccountInfo() },
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Text("Retry")
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                          .fillMaxSize()
+                          .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        uiState.account?.let { account ->
+                            item {
+                                AccountSummaryCard(account)
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
 }
 
 @Composable
 fun AccountSummaryCard(account: AlpacaAccount) {
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-      Text("Account Summary", style = MaterialTheme.typography.titleLarge)
-      HorizontalDivider()
-      
-      SummaryRow("Equity", "$${account.equity}")
-      SummaryRow("Buying Power", "$${account.buyingPower}")
-      SummaryRow("Cash", "$${account.cash}")
-      SummaryRow("Portfolio Value", "$${account.portfolioValue}")
-      SummaryRow("Status", account.status.uppercase())
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Account Summary", style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+
+            SummaryRow("Equity", "$${account.equity}")
+            SummaryRow("Buying Power", "$${account.buyingPower}")
+            SummaryRow("Cash", "$${account.cash}")
+            SummaryRow("Portfolio Value", "$${account.portfolioValue}")
+            SummaryRow("Status", account.status.uppercase())
+        }
     }
-  }
 }
 
 @Composable
 fun SummaryRow(label: String, value: String) {
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.SpaceBetween
-  ) {
-    Text(label, style = MaterialTheme.typography.bodyMedium)
-    Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-  }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+    }
 }
