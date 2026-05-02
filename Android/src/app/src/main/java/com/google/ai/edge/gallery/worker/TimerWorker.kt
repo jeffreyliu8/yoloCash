@@ -33,14 +33,16 @@ import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.ModelAllowlist
+import com.google.ai.edge.gallery.data.StockApiService
 import com.google.ai.edge.gallery.data.room.ChatDao
 import com.google.ai.edge.gallery.data.room.ChatHistory
+import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.runtime.runtimeHelper
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -49,12 +51,15 @@ import kotlin.coroutines.resume
 private const val TAG = "AGTimerWorker"
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
 
+
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface TimerWorkerEntryPoint {
     fun chatDao(): ChatDao
     fun dataStoreRepository(): DataStoreRepository
     fun json(): Json
+    fun stockDao(): StockDao
+    fun stockApiService(): StockApiService
 }
 
 class TimerWorker(context: Context, params: WorkerParameters) :
@@ -106,43 +111,58 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 return Result.failure()
             }
 
-            // 4. Send "hello"
-            val prompt = "hello"
-            val responseText = suspendCancellableCoroutine { continuation ->
-                var fullResponse = ""
-                model.runtimeHelper.runInference(
-                    model = model,
-                    input = prompt,
-                    resultListener = { partial, done, _ ->
-                        fullResponse += partial
-                        if (done) {
-                            continuation.resume(fullResponse)
-                        }
-                    },
-                    cleanUpListener = {},
-                    onError = { error ->
-                        Log.e(TAG, "Inference error: $error")
-                        continuation.resume("")
-                    },
-                    coroutineScope = null
-                )
-            }
+            val stockDao = entryPoint.stockDao()
+            val stockApiService = entryPoint.stockApiService()
+            val credentials = stockDao.getAllCredentials().first()
 
-            // 5. Save to Room
-            if (responseText.isNotEmpty()) {
-                Log.d(TAG, "Received response: $responseText")
-                chatDao.insertHistory(ChatHistory(prompt = prompt, response = responseText))
+            for (credential in credentials) {
+                createForegroundInfo("Processing credentail ${credential.name}")
+                // 4. Get Account Status
+                val account = try {
+                    stockApiService.getAccount(credential.apiKey, credential.apiSecret)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to get account for ${credential.name}", e)
+                    null
+                }
+
+                if (account != null) {
+                    // 5. Reset conversation for a new session
+                    model.runtimeHelper.resetConversation(model)
+
+                    // 6. Run Inference
+                    val prompt =
+                        "Summarize the account status for ${credential.name}: Cash=${account.cash}, Equity=${account.equity}, Portfolio Value=${account.portfolioValue}. Keep it brief."
+                    val responseText = suspendCancellableCoroutine { continuation ->
+                        var fullResponse = ""
+                        model.runtimeHelper.runInference(
+                            model = model,
+                            input = prompt,
+                            resultListener = { partial, done, _ ->
+                                fullResponse += partial
+                                if (done) {
+                                    continuation.resume(fullResponse)
+                                }
+                            },
+                            cleanUpListener = {},
+                            onError = { error ->
+                                Log.e(TAG, "Inference error: $error")
+                                continuation.resume("")
+                            },
+                            coroutineScope = null
+                        )
+                    }
+
+                    // 7. Save to Room
+                    if (responseText.isNotEmpty()) {
+                        Log.d(TAG, "Received response for ${credential.name}: $responseText")
+                        chatDao.insertHistory(ChatHistory(prompt = prompt, response = responseText))
+                    }
+                }
             }
 
             // Clean up
             suspendCancellableCoroutine { continuation ->
                 model.runtimeHelper.cleanUp(model = model, onDone = { continuation.resume(Unit) })
-            }
-
-            // Counting from 1 to 5
-            for (i in 1..5) {
-                setForeground(createForegroundInfo(i))
-                delay(1000) // 1 second delay between counts
             }
 
             Result.success()
@@ -184,7 +204,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
         }
     }
 
-    private fun createForegroundInfo(count: Int): ForegroundInfo {
+    private fun createForegroundInfo(msg: String): ForegroundInfo {
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
@@ -197,7 +217,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle("Timer Worker Running")
-            .setContentText("Count: $count")
+            .setContentText(msg)
             .setSmallIcon(R.drawable.logo)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
