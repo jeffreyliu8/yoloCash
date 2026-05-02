@@ -100,6 +100,15 @@ fun StockAnalyzerSettingsScreen(
       ) {
         Text("Trigger Timer Now")
       }
+
+      HorizontalDivider()
+
+      Button(
+        onClick = { viewModel.populateCredentials() },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text("Populate Credentials")
+      }
     }
   }
 }

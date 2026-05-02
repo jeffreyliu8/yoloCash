@@ -18,23 +18,28 @@ package com.google.ai.edge.gallery.ui.stockanalyzer
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.ai.edge.gallery.data.DataStoreRepository
+import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
+import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.worker.TimerWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class StockAnalyzerSettingsViewModel @Inject constructor(
   private val dataStoreRepository: DataStoreRepository,
+  private val stockDao: StockDao,
   @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -66,5 +71,31 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
       ExistingWorkPolicy.REPLACE,
       workRequest
     )
+  }
+
+  fun populateCredentials() {
+    viewModelScope.launch {
+      stockDao.insertCredential(
+        AlpacaCredentialEntity(
+          name = "Account 1",
+          apiKey = "PKMN74Y7PMLTGKIGBKL4VV7DUF",
+          apiSecret = "CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C"
+        )
+      )
+      stockDao.insertCredential(
+        AlpacaCredentialEntity(
+          name = "Account 2",
+          apiKey = "PK3SIFRQMOJLSE443UBGHOZSCY",
+          apiSecret = "DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4"
+        )
+      )
+      stockDao.insertCredential(
+        AlpacaCredentialEntity(
+          name = "Account 3",
+          apiKey = "PKGETVNBNXWAY44G7JOHKT3BYV",
+          apiSecret = "ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u"
+        )
+      )
+    }
   }
 }
