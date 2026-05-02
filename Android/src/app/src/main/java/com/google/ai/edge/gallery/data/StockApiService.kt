@@ -59,6 +59,19 @@ data class AlpacaOrder(
   @SerialName("type") val type: String,
 )
 
+@Serializable
+data class AlpacaTrade(
+  @SerialName("p") val price: Double,
+  @SerialName("s") val size: Int,
+  @SerialName("t") val timestamp: String,
+)
+
+@Serializable
+data class AlpacaLatestTrade(
+  @SerialName("symbol") val symbol: String,
+  @SerialName("trade") val trade: AlpacaTrade,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
@@ -74,4 +87,10 @@ interface StockApiService {
     apiKey: String,
     apiSecret: String,
   ): List<AlpacaOrder>
+
+  suspend fun getStockPrice(
+    apiKey: String,
+    apiSecret: String,
+    symbol: String,
+  ): Double
 }

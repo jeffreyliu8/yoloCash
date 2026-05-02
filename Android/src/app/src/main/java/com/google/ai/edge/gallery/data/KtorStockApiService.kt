@@ -45,4 +45,16 @@ class KtorStockApiService(
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
     }
+
+    override suspend fun getStockPrice(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String
+    ): Double {
+        val response: AlpacaLatestTrade = client.get("https://data.alpaca.markets/v2/stocks/$symbol/trades/latest") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+        return response.trade.price
+    }
 }
