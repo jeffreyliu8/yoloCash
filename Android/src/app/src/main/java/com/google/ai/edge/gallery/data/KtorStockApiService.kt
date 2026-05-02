@@ -18,6 +18,7 @@ package com.google.ai.edge.gallery.data
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -102,5 +103,29 @@ class KtorStockApiService(
                 )
             )
         }.body()
+    }
+
+    override suspend fun deleteOrder(apiKey: String, apiSecret: String, orderId: String) {
+        client.delete("${baseUrl}v2/orders/$orderId") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }
+    }
+
+    override suspend fun getLatestNews(
+        apiKey: String,
+        apiSecret: String,
+        symbols: String?,
+        limit: Int
+    ): List<AlpacaNews> {
+        val response: AlpacaNewsResponse = client.get("https://data.alpaca.markets/v1beta1/news") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+            url {
+                symbols?.let { parameters.append("symbols", it) }
+                parameters.append("limit", limit.toString())
+            }
+        }.body()
+        return response.news
     }
 }

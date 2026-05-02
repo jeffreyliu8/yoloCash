@@ -137,6 +137,47 @@ class StockTools(
         }
     }
 
+    @Tool(description = "Cancel an open order by its ID.")
+    fun cancelOrder(
+        @ToolParam(description = "The ID of the order to cancel.") orderId: String
+    ): Map<String, String> = runBlocking {
+        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
+            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+        }
+        try {
+            stockApiService.deleteOrder(apiKey, apiSecret, orderId)
+            mapOf("status" to "success", "message" to "Order $orderId cancelled")
+        } catch (e: Exception) {
+            mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
+        }
+    }
+
+    @Tool(description = "Get the latest news for specific stock symbols or general market news.")
+    fun getLatestNews(
+        @ToolParam(description = "Comma-separated stock symbols, e.g., 'AAPL,TSLA'. If omitted, general market news is returned.") symbols: String? = null,
+        @ToolParam(description = "The number of news items to return, default is 5.") limit: Int = 5
+    ): Map<String, Any> = runBlocking {
+        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
+            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+        }
+        try {
+            val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit)
+            mapOf(
+                "status" to "success",
+                "news" to news.map {
+                    mapOf(
+                        "headline" to it.headline,
+                        "summary" to it.summary,
+                        "created_at" to it.createdAt,
+                        "symbols" to it.symbols
+                    )
+                }
+            )
+        } catch (e: Exception) {
+            mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
+        }
+    }
+
     private fun calculateEMA(data: List<Double>, period: Int): List<Double> {
         if (data.size < period) return List(data.size) { 0.0 }
         val emaList = mutableListOf<Double>()

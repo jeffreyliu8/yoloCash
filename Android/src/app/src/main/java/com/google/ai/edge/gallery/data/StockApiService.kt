@@ -89,6 +89,25 @@ data class AlpacaBarsResponse(
   @SerialName("next_page_token") val nextPageToken: String? = null,
 )
 
+@Serializable
+data class AlpacaNews(
+  @SerialName("id") val id: Long,
+  @SerialName("headline") val headline: String,
+  @SerialName("summary") val summary: String,
+  @SerialName("author") val author: String,
+  @SerialName("created_at") val createdAt: String,
+  @SerialName("updated_at") val updatedAt: String,
+  @SerialName("url") val url: String? = null,
+  @SerialName("symbols") val symbols: List<String>,
+  @SerialName("source") val source: String,
+)
+
+@Serializable
+data class AlpacaNewsResponse(
+  @SerialName("news") val news: List<AlpacaNews>,
+  @SerialName("next_page_token") val nextPageToken: String? = null,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
@@ -128,4 +147,17 @@ interface StockApiService {
     type: String = "market",
     timeInForce: String = "gtc"
   ): AlpacaOrder
+
+  suspend fun deleteOrder(
+    apiKey: String,
+    apiSecret: String,
+    orderId: String
+  )
+
+  suspend fun getLatestNews(
+    apiKey: String,
+    apiSecret: String,
+    symbols: String? = null,
+    limit: Int = 10
+  ): List<AlpacaNews>
 }
