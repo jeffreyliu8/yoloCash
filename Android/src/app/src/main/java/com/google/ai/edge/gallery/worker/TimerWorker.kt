@@ -70,9 +70,16 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
     private val notificationId = 1001
     private val channelId = "timer_worker_channel"
+    private var logDao: LogDao? = null
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return createForegroundInfo("Stock Analyzer is running")
+    }
+
+    private suspend fun logToBoth(header: String, content: String) {
+        Log.d(TAG, "[$header] $content")
+        logDao?.insertLog(LogEntry(header = header, content = content))
+        setForeground(createForegroundInfo("$header: $content"))
     }
 
     override suspend fun doWork(): Result {
@@ -80,16 +87,14 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             createNotificationChannel()
             setForeground(createForegroundInfo("Checking market status..."))
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
-            val logDao = entryPoint.logDao()
+            logDao = entryPoint.logDao()
             val stockDao = entryPoint.stockDao()
             val stockApiService = entryPoint.stockApiService()
             val dataStoreRepository = entryPoint.dataStoreRepository()
 
-            logDao.insertLog(
-                LogEntry(
-                    header = "Debug mode check",
-                    content = "is debug mode: ${dataStoreRepository.isDebugModeEnabled()}"
-                )
+            logToBoth(
+                header = "Debug mode check",
+                content = "is debug mode: ${dataStoreRepository.isDebugModeEnabled()}"
             )
 
             // Check if market is open
@@ -100,13 +105,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     val clock =
                         stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
                     if (!clock.isOpen) {
-                        Log.d(TAG, "Market is closed. Stopping worker.")
-                        setForeground(createForegroundInfo("Market is closed. Stopping."))
-                        logDao.insertLog(
-                            LogEntry(
-                                header = "Market is closed. Stopping.",
-                                content = "Market is closed. Stopping."
-                            )
+                        logToBoth(
+                            header = "Market is closed. Stopping.",
+                            content = "Market is closed. Stopping."
                         )
                         return Result.success()
                     }
@@ -186,12 +187,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 }
 
                 if (responseText.isNotEmpty()) {
-                    Log.d(TAG, "Received response for ${credential.name}: $responseText")
-                    logDao.insertLog(
-                        LogEntry(
-                            header = "Analysis for ${credential.name}",
-                            content = responseText
-                        )
+                    logToBoth(
+                        header = "Analysis for ${credential.name}",
+                        content = responseText
                     )
                 }
             }
