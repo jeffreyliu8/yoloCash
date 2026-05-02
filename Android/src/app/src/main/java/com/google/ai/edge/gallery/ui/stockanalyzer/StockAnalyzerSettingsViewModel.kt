@@ -46,6 +46,9 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
   private val _isTimerEnabled = MutableStateFlow(dataStoreRepository.isTimerWorkerEnabled())
   val isTimerEnabled = _isTimerEnabled.asStateFlow()
 
+  private val _isDebugModeEnabled = MutableStateFlow(dataStoreRepository.isDebugModeEnabled())
+  val isDebugModeEnabled = _isDebugModeEnabled.asStateFlow()
+
   private val workManager = WorkManager.getInstance(context)
 
   fun toggleTimer(enabled: Boolean) {
@@ -62,6 +65,11 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
     } else {
       workManager.cancelUniqueWork("TimerWorker")
     }
+  }
+
+  fun toggleDebugMode(enabled: Boolean) {
+    dataStoreRepository.setDebugModeEnabled(enabled)
+    _isDebugModeEnabled.value = enabled
   }
 
   fun triggerImmediateTimer() {

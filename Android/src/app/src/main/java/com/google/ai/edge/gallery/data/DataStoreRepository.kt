@@ -113,6 +113,10 @@ interface DataStoreRepository {
   fun isTimerWorkerEnabled(): Boolean
 
   fun setTimerWorkerEnabled(enabled: Boolean)
+
+  fun isDebugModeEnabled(): Boolean
+
+  fun setDebugModeEnabled(enabled: Boolean)
 }
 
 /** Repository for managing data using Proto DataStore. */
@@ -449,6 +453,21 @@ class DefaultDataStoreRepository(
     runBlocking {
       dataStore.updateData { settings ->
         settings.toBuilder().putFeatureFlags("timer_worker", enabled).build()
+      }
+    }
+  }
+
+  override fun isDebugModeEnabled(): Boolean {
+    return runBlocking {
+      val settings = dataStore.data.first()
+      settings.featureFlagsMap["debug_mode"] ?: false
+    }
+  }
+
+  override fun setDebugModeEnabled(enabled: Boolean) {
+    runBlocking {
+      dataStore.updateData { settings ->
+        settings.toBuilder().putFeatureFlags("debug_mode", enabled).build()
       }
     }
   }

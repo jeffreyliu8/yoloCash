@@ -82,13 +82,22 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             val logDao = entryPoint.logDao()
             val stockDao = entryPoint.stockDao()
             val stockApiService = entryPoint.stockApiService()
+            val dataStoreRepository = entryPoint.dataStoreRepository()
+
+            logDao.insertLog(
+                LogEntry(
+                    header = "Debug mode check",
+                    content = "is debug mode: ${dataStoreRepository.isDebugModeEnabled()}"
+                )
+            )
 
             // Check if market is open
             val credentials = stockDao.getAllCredentials().first()
-            if (credentials.isNotEmpty()) {
+            if (credentials.isNotEmpty() && !dataStoreRepository.isDebugModeEnabled()) {
                 val firstCredential = credentials[0]
                 try {
-                    val clock = stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
+                    val clock =
+                        stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
                     if (!clock.isOpen) {
                         Log.d(TAG, "Market is closed. Stopping worker.")
                         setForeground(createForegroundInfo("Market is closed. Stopping."))

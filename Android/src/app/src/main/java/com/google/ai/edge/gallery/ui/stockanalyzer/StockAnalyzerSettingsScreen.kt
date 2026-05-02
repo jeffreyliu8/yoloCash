@@ -101,6 +101,25 @@ fun StockAnalyzerSettingsScreen(
         Text("Trigger Timer Now")
       }
 
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        val isDebugModeEnabled by viewModel.isDebugModeEnabled.collectAsState()
+        Column(modifier = Modifier.weight(1f)) {
+          Text("Debug Mode", style = MaterialTheme.typography.titleMedium)
+          Text(
+            "Skip market close check in TimerWorker.",
+            style = MaterialTheme.typography.bodySmall
+          )
+        }
+        Switch(
+          checked = isDebugModeEnabled,
+          onCheckedChange = { viewModel.toggleDebugMode(it) }
+        )
+      }
+
       HorizontalDivider()
 
       Button(
