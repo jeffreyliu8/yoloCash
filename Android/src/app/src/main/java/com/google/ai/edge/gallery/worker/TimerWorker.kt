@@ -71,10 +71,14 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     private val notificationId = 1001
     private val channelId = "timer_worker_channel"
 
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return createForegroundInfo("Stock Analyzer is running")
+    }
+
     override suspend fun doWork(): Result {
         return try {
             createNotificationChannel()
-            createForegroundInfo("Start doing timerWorker")
+            setForeground(createForegroundInfo("Initializing model..."))
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
             val chatDao = entryPoint.chatDao()
 
@@ -116,7 +120,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             val credentials = stockDao.getAllCredentials().first()
 
             for (credential in credentials) {
-                createForegroundInfo("Processing ${credential.name}")
+                setForeground(createForegroundInfo("Processing ${credential.name}..."))
                 model.runtimeHelper.resetConversation(model)
                 //  Get Account Status
                 val account = try {
@@ -164,6 +168,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             // Clean up
+            setForeground(createForegroundInfo("Cleaning up..."))
             suspendCancellableCoroutine { continuation ->
                 model.runtimeHelper.cleanUp(model = model, onDone = { continuation.resume(Unit) })
             }
