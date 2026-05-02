@@ -16,15 +16,13 @@
 
 package com.google.ai.edge.gallery.data.room
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Database(
-  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, ChatResponse::class],
-  version = 1,
-  exportSchema = false
+@Entity(tableName = "chat_responses")
+data class ChatResponse(
+  @PrimaryKey(autoGenerate = true) val id: Int = 0,
+  val prompt: String,
+  val response: String,
+  val timestamp: Long = System.currentTimeMillis()
 )
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun stockDao(): StockDao
-  abstract fun chatDao(): ChatDao
-}

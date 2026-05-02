@@ -16,15 +16,16 @@
 
 package com.google.ai.edge.gallery.data.room
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
-@Database(
-  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, ChatResponse::class],
-  version = 1,
-  exportSchema = false
-)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun stockDao(): StockDao
-  abstract fun chatDao(): ChatDao
+@Dao
+interface ChatDao {
+  @Insert
+  suspend fun insertResponse(response: ChatResponse)
+
+  @Query("SELECT * FROM chat_responses ORDER BY timestamp DESC")
+  fun getAllResponses(): Flow<List<ChatResponse>>
 }

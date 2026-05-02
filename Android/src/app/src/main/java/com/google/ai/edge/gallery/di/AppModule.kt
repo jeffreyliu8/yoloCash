@@ -36,6 +36,7 @@ import com.google.ai.edge.gallery.data.DefaultDataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDownloadRepository
 import com.google.ai.edge.gallery.data.DownloadRepository
 import com.google.ai.edge.gallery.data.room.AppDatabase
+import com.google.ai.edge.gallery.data.room.ChatDao
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.proto.BenchmarkResults
 import com.google.ai.edge.gallery.proto.CutoutCollection
@@ -148,6 +149,7 @@ internal object AppModule {
                     db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 3', 'PKGETVNBNXWAY44G7JOHKT3BYV', 'ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u')")
                 }
             })
+            .fallbackToDestructiveMigration(true)
             .build()
     }
 
@@ -156,6 +158,13 @@ internal object AppModule {
     @Singleton
     fun provideStockDao(database: AppDatabase): StockDao {
         return database.stockDao()
+    }
+
+    // Provides the ChatDao
+    @Provides
+    @Singleton
+    fun provideChatDao(database: AppDatabase): ChatDao {
+        return database.chatDao()
     }
 
     // Provides DataStore<Settings>
