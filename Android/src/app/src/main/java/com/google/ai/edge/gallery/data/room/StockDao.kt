@@ -24,21 +24,21 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StockDao {
-  @Query("SELECT * FROM alpaca_credentials")
-  fun getAllCredentials(): Flow<List<AlpacaCredentialEntity>>
+    @Query("SELECT * FROM alpaca_credentials")
+    fun getAllCredentials(): Flow<List<AlpacaCredentialEntity>>
 
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertCredential(credential: AlpacaCredentialEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCredential(credential: AlpacaCredentialEntity)
 
-  @Query("DELETE FROM alpaca_credentials WHERE name = :name")
-  suspend fun deleteCredential(name: String)
+    @Query("DELETE FROM alpaca_credentials WHERE name = :name")
+    suspend fun deleteCredential(name: String)
 
-  @Query("SELECT * FROM watchlist_stocks")
-  fun getWatchlist(): Flow<List<WatchlistStockEntity>>
+    @Query("SELECT * FROM watchlist_stocks WHERE credentialName = :credentialName")
+    fun getWatchlist(credentialName: String): Flow<List<WatchlistStockEntity>>
 
-  @Insert(onConflict = OnConflictStrategy.IGNORE)
-  suspend fun insertStock(stock: WatchlistStockEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertStock(stock: WatchlistStockEntity)
 
-  @Query("DELETE FROM watchlist_stocks WHERE symbol = :symbol")
-  suspend fun deleteStock(symbol: String)
+    @Query("DELETE FROM watchlist_stocks WHERE credentialName = :credentialName AND symbol = :symbol")
+    suspend fun deleteStock(credentialName: String, symbol: String)
 }

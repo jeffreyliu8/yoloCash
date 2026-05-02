@@ -91,6 +91,7 @@ import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.LogEntryScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerSettingsScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.WatchlistScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -106,6 +107,7 @@ private const val ROUTE_STOCK_ANALYZER = "stock_analyzer"
 private const val ROUTE_STOCK_ANALYZER_SETTINGS = "stock_analyzer_settings"
 private const val ROUTE_CREDENTIAL_DETAIL = "credential_detail"
 private const val ROUTE_LOG_ENTRIES = "log_entries"
+private const val ROUTE_WATCHLIST = "watchlist"
 private const val ENTER_ANIMATION_DURATION_MS = 500
 private val ENTER_ANIMATION_EASING = EaseOutExpo
 private const val ENTER_ANIMATION_DELAY_MS = 100
@@ -495,7 +497,22 @@ fun GalleryNavHost(
       enterTransition = { slideEnter() },
       exitTransition = { slideExit() },
     ) {
-      CredentialDetailScreen(onBackClicked = { navController.navigateUp() })
+      CredentialDetailScreen(
+        onBackClicked = { navController.navigateUp() },
+        onEditWatchlist = { credentialName ->
+          navController.navigate("$ROUTE_WATCHLIST/$credentialName")
+        }
+      )
+    }
+
+    // Watchlist page.
+    composable(
+      route = "$ROUTE_WATCHLIST/{credentialName}",
+      arguments = listOf(navArgument("credentialName") { type = NavType.StringType }),
+      enterTransition = { slideEnter() },
+      exitTransition = { slideExit() },
+    ) {
+      WatchlistScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Benchmark creation page.

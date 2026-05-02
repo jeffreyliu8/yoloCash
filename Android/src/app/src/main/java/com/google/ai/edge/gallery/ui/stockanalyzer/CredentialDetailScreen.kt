@@ -26,12 +26,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +57,7 @@ import com.google.ai.edge.gallery.data.AlpacaAccount
 @Composable
 fun CredentialDetailScreen(
     onBackClicked: () -> Unit,
+    onEditWatchlist: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailViewModel = hiltViewModel(),
 ) {
@@ -73,6 +76,16 @@ fun CredentialDetailScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onEditWatchlist(uiState.credentialName) }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.List,
+                    contentDescription = "Edit Watchlist"
+                )
+            }
         }
     ) { innerPadding ->
         PullToRefreshBox(

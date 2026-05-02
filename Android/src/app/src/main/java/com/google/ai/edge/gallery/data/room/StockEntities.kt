@@ -21,12 +21,16 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "alpaca_credentials")
 data class AlpacaCredentialEntity(
-  @PrimaryKey val name: String,
-  val apiKey: String,
-  val apiSecret: String,
+    @PrimaryKey val name: String,
+    val apiKey: String,
+    val apiSecret: String,
 )
 
-@Entity(tableName = "watchlist_stocks")
+@Entity(
+    tableName = "watchlist_stocks",
+    primaryKeys = ["credentialName", "symbol"]
+)
 data class WatchlistStockEntity(
-  @PrimaryKey val symbol: String,
+    val credentialName: String,
+    val symbol: String,
 )
