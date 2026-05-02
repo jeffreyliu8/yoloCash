@@ -112,7 +112,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         return Result.success()
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to check market status", e)
+                    logToBoth(
+                        header = "Market check error",
+                        content = e.message ?: "Failed to check market status"
+                    )
                 }
             }
 
@@ -126,14 +129,17 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             // 1. Find Gemma 4 model
             val model = findGemma4Model(json)
             if (model == null) {
-                Log.e(TAG, "Gemma 4 model not found in allowlist")
+                logToBoth(header = "Model error", content = "Gemma 4 model not found in allowlist")
                 return Result.failure()
             }
 
             // 2. Check if downloaded
             val modelFile = File(model.getPath(applicationContext))
             if (!modelFile.exists()) {
-                Log.e(TAG, "Gemma 4 model not downloaded at ${modelFile.absolutePath}")
+                logToBoth(
+                    header = "Model error",
+                    content = "Gemma 4 model not downloaded at ${modelFile.absolutePath}"
+                )
                 return Result.failure()
             }
 
@@ -151,7 +157,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             if (initializationError.isNotEmpty()) {
-                Log.e(TAG, "Failed to initialize model: $initializationError")
+                logToBoth(
+                    header = "Initialization error",
+                    content = "Failed to initialize model: $initializationError"
+                )
                 return Result.failure()
             }
 
@@ -202,12 +211,15 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
             Result.success()
         } catch (e: Exception) {
-            Log.e(TAG, "TimerWorker failed with exception", e)
+            logToBoth(
+                header = "Worker exception",
+                content = e.message ?: "TimerWorker failed with exception"
+            )
             Result.failure()
         }
     }
 
-    private fun findGemma4Model(json: Json): Model? {
+    private suspend fun findGemma4Model(json: Json): Model? {
         try {
             val externalFilesDir = applicationContext.getExternalFilesDir(null)
             val file = File(externalFilesDir, MODEL_ALLOWLIST_FILENAME)
@@ -221,7 +233,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 allowlist.models.find { it.name.contains("Gemma-4", ignoreCase = true) }
             return allowedModel?.toModel()?.apply { preProcess() }
         } catch (e: Exception) {
-            Log.e(TAG, "Error finding Gemma 4 model", e)
+            logToBoth(
+                header = "Model discovery error",
+                content = e.message ?: "Error finding Gemma 4 model"
+            )
             return null
         }
     }
