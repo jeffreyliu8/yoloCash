@@ -18,8 +18,8 @@ package com.google.ai.edge.gallery.ui.stockanalyzer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.ai.edge.gallery.data.room.ChatDao
-import com.google.ai.edge.gallery.data.room.ChatHistory
+import com.google.ai.edge.gallery.data.room.LogDao
+import com.google.ai.edge.gallery.data.room.LogEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,33 +28,33 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class ChatHistoryUiState(
-    val history: List<ChatHistory> = emptyList(),
+data class LogEntryUiState(
+    val logs: List<LogEntry> = emptyList(),
 )
 
 @HiltViewModel
-class ChatHistoryViewModel @Inject constructor(
-    private val chatDao: ChatDao,
+class LogEntryViewModel @Inject constructor(
+    private val logDao: LogDao,
 ) : ViewModel() {
 
-    val uiState: StateFlow<ChatHistoryUiState> = chatDao.getAllHistory()
-        .map { history ->
-            ChatHistoryUiState(history = history)
+    val uiState: StateFlow<LogEntryUiState> = logDao.getAllLogs()
+        .map { logs ->
+            LogEntryUiState(logs = logs)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ChatHistoryUiState()
+            initialValue = LogEntryUiState()
         )
 
-    fun deleteHistory(id: Int) {
+    fun deleteLog(id: Int) {
         viewModelScope.launch {
-            chatDao.deleteHistory(id)
+            logDao.deleteLog(id)
         }
     }
 
-    fun deleteAllHistory() {
+    fun deleteAllLogs() {
         viewModelScope.launch {
-            chatDao.deleteAllHistory()
+            logDao.deleteAllLogs()
         }
     }
 }

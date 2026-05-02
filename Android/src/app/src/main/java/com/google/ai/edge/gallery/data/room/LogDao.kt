@@ -22,16 +22,16 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ChatDao {
+interface LogDao {
   @Insert
-  suspend fun insertHistory(history: ChatHistory)
+  suspend fun insertLog(log: LogEntry)
 
-  @Query("SELECT * FROM chat_history ORDER BY timestamp DESC")
-  fun getAllHistory(): Flow<List<ChatHistory>>
+  @Query("SELECT * FROM log_entries ORDER BY timestamp DESC")
+  fun getAllLogs(): Flow<List<LogEntry>>
 
-  @Query("DELETE FROM chat_history WHERE id = :id")
-  suspend fun deleteHistory(id: Int)
+  @Query("DELETE FROM log_entries WHERE id = :id")
+  suspend fun deleteLog(id: Int)
 
-  @Query("DELETE FROM chat_history")
-  suspend fun deleteAllHistory()
+  @Query("DELETE FROM log_entries")
+  suspend fun deleteAllLogs()
 }

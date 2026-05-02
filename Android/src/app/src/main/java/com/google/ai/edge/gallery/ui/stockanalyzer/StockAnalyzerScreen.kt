@@ -57,7 +57,7 @@ fun StockAnalyzerScreen(
   onBackClicked: () -> Unit,
   onCredentialClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
-  onChatHistoryClicked: () -> Unit,
+  onLogEntriesClicked: () -> Unit,
   modifier: Modifier = Modifier,
   viewModel: StockAnalyzerViewModel = hiltViewModel(),
 ) {
@@ -83,8 +83,8 @@ fun StockAnalyzerScreen(
       )
     },
     floatingActionButton = {
-      FloatingActionButton(onClick = onChatHistoryClicked) {
-        Icon(Icons.Default.History, contentDescription = "Chat History")
+      FloatingActionButton(onClick = onLogEntriesClicked) {
+        Icon(Icons.Default.History, contentDescription = "View logs")
       }
     }
   ) { innerPadding ->

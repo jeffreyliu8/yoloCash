@@ -27,8 +27,8 @@ The project follows a modular and extensible architecture:
     *   **Features:** Manage multiple Alpaca credentials, track a stock watchlist, and view real-time account information.
     *   **Persistence:** Uses Room Database for storing credentials and watchlist symbols.
     *   **Integration:** Communicates with Alpaca's REST API via Ktor 3.
-*   **Chat History:** A mechanism to persist chat interactions between the user and AI models.
-    *   **Persistence:** Uses Room Database (`chat_history` table) to store prompts and their corresponding responses.
+*   **Log Entries:** A mechanism to persist various interactions and system logs.
+    *   **Persistence:** Uses Room Database (`log_entries` table) to store headers and their corresponding content.
 *   **MySettings:** A centralized settings screen accessible from the Home screen. It allows users to view all currently downloaded models and access experimental features like the Stock Analyzer.
 *   **Skills System:** An agent-based extensibility mechanism where "skills" are defined using `SKILL.md` files in `assets/skills/`.
     *   **Definition:** Each skill has a `SKILL.md` file containing metadata (name, description), example queries, and instructions for the agent.

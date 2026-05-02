@@ -32,7 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,29 +42,27 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.ai.edge.gallery.R
-import com.google.ai.edge.gallery.data.room.ChatHistory
+import com.google.ai.edge.gallery.data.room.LogEntry
 import java.text.SimpleDateFormat
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatHistoryScreen(
+fun LogEntryScreen(
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ChatHistoryViewModel = hiltViewModel(),
+    viewModel: LogEntryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Chat History") },
+                title = { Text("Log Entries") },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
                         Icon(
@@ -77,15 +74,15 @@ fun ChatHistoryScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.history.isNotEmpty()) {
+            if (uiState.logs.isNotEmpty()) {
                 FloatingActionButton(
-                    onClick = { viewModel.deleteAllHistory() },
+                    onClick = { viewModel.deleteAllLogs() },
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Delete,
-                        contentDescription = "Delete all history"
+                        contentDescription = "Delete all logs"
                     )
                 }
             }
@@ -103,12 +100,12 @@ fun ChatHistoryScreen(
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 8.dp))
             }
             items(
-                items = uiState.history,
+                items = uiState.logs,
                 key = { it.id }
-            ) { chat ->
-                ChatHistoryCard(
-                    chat = chat,
-                    onDelete = { viewModel.deleteHistory(chat.id) },
+            ) { log ->
+                LogEntryCard(
+                    log = log,
+                    onDelete = { viewModel.deleteLog(log.id) },
                     modifier = Modifier.animateItem()
                 )
             }
@@ -121,13 +118,13 @@ fun ChatHistoryScreen(
 }
 
 @Composable
-fun ChatHistoryCard(
-    chat: ChatHistory,
+fun LogEntryCard(
+    log: LogEntry,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", LocalLocale.current.platformLocale)
-    val dateString = dateFormat.format(Date(chat.timestamp))
+    val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", java.util.Locale.getDefault())
+    val dateString = dateFormat.format(java.util.Date(log.timestamp))
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -141,7 +138,7 @@ fun ChatHistoryCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = chat.accountName,
+                        text = log.header,
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -162,27 +159,9 @@ fun ChatHistoryCard(
             }
             
             Text(
-                text = "Prompt:",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Text(
-                text = chat.prompt,
+                text = log.content,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
-            )
-            
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            
-            Text(
-                text = "Response:",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            Text(
-                text = chat.response,
-                style = MaterialTheme.typography.bodyMedium
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }

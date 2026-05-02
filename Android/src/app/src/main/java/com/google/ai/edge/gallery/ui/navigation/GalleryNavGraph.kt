@@ -88,7 +88,7 @@ import com.google.ai.edge.gallery.ui.modelmanager.ModelManager
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
-import com.google.ai.edge.gallery.ui.stockanalyzer.ChatHistoryScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.LogEntryScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerSettingsScreen
 import kotlinx.coroutines.Dispatchers
@@ -105,7 +105,7 @@ private const val ROUTE_MY_SETTINGS = "my_settings"
 private const val ROUTE_STOCK_ANALYZER = "stock_analyzer"
 private const val ROUTE_STOCK_ANALYZER_SETTINGS = "stock_analyzer_settings"
 private const val ROUTE_CREDENTIAL_DETAIL = "credential_detail"
-private const val ROUTE_CHAT_HISTORY = "chat_history"
+private const val ROUTE_LOG_ENTRIES = "log_entries"
 private const val ENTER_ANIMATION_DURATION_MS = 500
 private val ENTER_ANIMATION_EASING = EaseOutExpo
 private const val ENTER_ANIMATION_DELAY_MS = 100
@@ -466,17 +466,17 @@ fun GalleryNavHost(
           navController.navigate("$ROUTE_CREDENTIAL_DETAIL/$credentialName")
         },
         onSettingsClicked = { navController.navigate(ROUTE_STOCK_ANALYZER_SETTINGS) },
-        onChatHistoryClicked = { navController.navigate(ROUTE_CHAT_HISTORY) }
+        onLogEntriesClicked = { navController.navigate(ROUTE_LOG_ENTRIES) }
       )
     }
 
-    // Chat history page.
+    // Log entries page.
     composable(
-      route = ROUTE_CHAT_HISTORY,
+      route = ROUTE_LOG_ENTRIES,
       enterTransition = { slideEnter() },
       exitTransition = { slideExit() },
     ) {
-      ChatHistoryScreen(onBackClicked = { navController.navigateUp() })
+      LogEntryScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Stock analyzer settings page.

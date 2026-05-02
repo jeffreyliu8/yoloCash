@@ -36,7 +36,7 @@ import com.google.ai.edge.gallery.data.DefaultDataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDownloadRepository
 import com.google.ai.edge.gallery.data.DownloadRepository
 import com.google.ai.edge.gallery.data.room.AppDatabase
-import com.google.ai.edge.gallery.data.room.ChatDao
+import com.google.ai.edge.gallery.data.room.LogDao
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.proto.BenchmarkResults
 import com.google.ai.edge.gallery.proto.CutoutCollection
@@ -160,11 +160,11 @@ internal object AppModule {
         return database.stockDao()
     }
 
-    // Provides the ChatDao
+    // Provides the LogDao
     @Provides
     @Singleton
-    fun provideChatDao(database: AppDatabase): ChatDao {
-        return database.chatDao()
+    fun provideLogDao(database: AppDatabase): LogDao {
+        return database.logDao()
     }
 
     // Provides DataStore<Settings>

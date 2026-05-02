@@ -33,8 +33,8 @@ import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.ModelAllowlist
 import com.google.ai.edge.gallery.data.StockApiService
-import com.google.ai.edge.gallery.data.room.ChatDao
-import com.google.ai.edge.gallery.data.room.ChatHistory
+import com.google.ai.edge.gallery.data.room.LogDao
+import com.google.ai.edge.gallery.data.room.LogEntry
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.runtime.runtimeHelper
 import dagger.hilt.EntryPoint
@@ -54,7 +54,7 @@ private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface TimerWorkerEntryPoint {
-    fun chatDao(): ChatDao
+    fun logDao(): LogDao
     fun dataStoreRepository(): DataStoreRepository
     fun json(): Json
     fun stockDao(): StockDao
@@ -79,7 +79,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             createNotificationChannel()
             setForeground(createForegroundInfo("Checking market status..."))
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
-            val chatDao = entryPoint.chatDao()
+            val logDao = entryPoint.logDao()
             val stockDao = entryPoint.stockDao()
             val stockApiService = entryPoint.stockApiService()
 
@@ -92,6 +92,12 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     if (!clock.isOpen) {
                         Log.d(TAG, "Market is closed. Stopping worker.")
                         setForeground(createForegroundInfo("Market is closed. Stopping."))
+                        logDao.insertLog(
+                            LogEntry(
+                                header = "Market is closed. Stopping.",
+                                content = "Market is closed. Stopping."
+                            )
+                        )
                         return Result.success()
                     }
                 } catch (e: Exception) {
@@ -170,11 +176,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     // 7. Save to Room
                     if (responseText.isNotEmpty()) {
                         Log.d(TAG, "Received response for ${credential.name}: $responseText")
-                        chatDao.insertHistory(
-                            ChatHistory(
-                                prompt = prompt,
-                                response = responseText,
-                                accountName = credential.name
+                        logDao.insertLog(
+                            LogEntry(
+                                header = "Summary for ${credential.name}",
+                                content = responseText
                             )
                         )
                     }

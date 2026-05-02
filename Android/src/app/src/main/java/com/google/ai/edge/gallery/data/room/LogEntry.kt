@@ -19,11 +19,10 @@ package com.google.ai.edge.gallery.data.room
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "chat_history")
-data class ChatHistory(
+@Entity(tableName = "log_entries")
+data class LogEntry(
   @PrimaryKey(autoGenerate = true) val id: Int = 0,
-  val prompt: String,
-  val response: String,
-  val accountName: String = "",
+  val header: String,
+  val content: String,
   val timestamp: Long = System.currentTimeMillis()
 )

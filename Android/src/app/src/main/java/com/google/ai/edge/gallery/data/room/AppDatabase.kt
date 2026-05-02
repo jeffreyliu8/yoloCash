@@ -20,11 +20,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(
-  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, ChatHistory::class],
-  version = 2,
+  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, LogEntry::class],
+  version = 3,
   exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
   abstract fun stockDao(): StockDao
-  abstract fun chatDao(): ChatDao
+  abstract fun logDao(): LogDao
 }
