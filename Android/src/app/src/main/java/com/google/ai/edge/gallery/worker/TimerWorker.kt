@@ -139,7 +139,8 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     supportImage = false,
                     supportAudio = false,
                     onDone = { error -> continuation.resume(error) },
-                    coroutineScope = null
+                    coroutineScope = null,
+                    tools = emptyList()// todo, add get order tool
                 )
             }
 
@@ -160,8 +161,21 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 }
 
                 if (account != null) {
-                    val prompt =
-                        "Summarize the account status for ${credential.name}: Cash=${account.cash}, Equity=${account.equity}, Portfolio Value=${account.portfolioValue}. Keep it brief."
+                    val prompt = """
+                        You are an AI stock assistant.
+                        Account: ${credential.name}
+                        Equity: ${account.equity}
+                        Cash: ${account.cash}
+
+                        Available Tools:
+                        - [CALL: get_orders()]: Use this to check how many open orders currently exist.
+
+                        Task:
+                        1. Decide if you need to check orders. 
+                        2. If yes, output only "[CALL: get_orders()]".
+                        3. If no, provide a brief summary of the account.
+                    """.trimIndent()
+
                     val responseText = suspendCancellableCoroutine { continuation ->
                         var fullResponse = ""
                         model.runtimeHelper.runInference(
@@ -170,7 +184,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                             resultListener = { partial, done, _ ->
                                 fullResponse += partial
                                 if (done) {
-                                    continuation.resume(fullResponse)
+                                    continuation.resume(fullResponse.trim())
                                 }
                             },
                             cleanUpListener = {},
@@ -182,8 +196,53 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         )
                     }
 
-                    // 7. Save to Room
-                    if (responseText.isNotEmpty()) {
+                    if (responseText.contains("[CALL: get_orders()]")) {
+                        Log.d(TAG, "Model requested tool call: get_orders()")
+                        val orders = try {
+                            stockApiService.getOrders(credential.apiKey, credential.apiSecret)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to get orders", e)
+                            emptyList()
+                        }
+                        val ordersCount = orders.size
+                        val toolResult = "Tool result: Found $ordersCount active orders for ${credential.name}."
+                        logDao.insertLog(
+                            LogEntry(
+                                header = "Tool Call: get_orders()",
+                                content = toolResult
+                            )
+                        )
+
+                        // Second pass: let the model summarize with the tool result
+                        val finalPrompt = "The tool [get_orders()] returned $ordersCount orders. Now provide a final brief summary for ${credential.name} including this info."
+                        val finalResponse = suspendCancellableCoroutine { continuation ->
+                            var fullResponse = ""
+                            model.runtimeHelper.runInference(
+                                model = model,
+                                input = finalPrompt,
+                                resultListener = { partial, done, _ ->
+                                    fullResponse += partial
+                                    if (done) {
+                                        continuation.resume(fullResponse.trim())
+                                    }
+                                },
+                                cleanUpListener = {},
+                                onError = { error ->
+                                    Log.e(TAG, "Inference error: $error")
+                                    continuation.resume("")
+                                },
+                                coroutineScope = null
+                            )
+                        }
+                        if (finalResponse.isNotEmpty()) {
+                            logDao.insertLog(
+                                LogEntry(
+                                    header = "Final Analysis: ${credential.name}",
+                                    content = finalResponse
+                                )
+                            )
+                        }
+                    } else if (responseText.isNotEmpty()) {
                         Log.d(TAG, "Received response for ${credential.name}: $responseText")
                         logDao.insertLog(
                             LogEntry(

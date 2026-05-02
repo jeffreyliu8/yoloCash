@@ -38,4 +38,11 @@ class KtorStockApiService(
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
     }
+
+    override suspend fun getOrders(apiKey: String, apiSecret: String): List<AlpacaOrder> {
+        return client.get("${baseUrl}v2/orders") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+    }
 }

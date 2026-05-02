@@ -49,6 +49,16 @@ data class AlpacaClock(
   @SerialName("next_close") val nextClose: String,
 )
 
+@Serializable
+data class AlpacaOrder(
+  @SerialName("id") val id: String,
+  @SerialName("symbol") val symbol: String,
+  @SerialName("status") val status: String,
+  @SerialName("qty") val qty: String?,
+  @SerialName("side") val side: String,
+  @SerialName("type") val type: String,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
@@ -59,4 +69,9 @@ interface StockApiService {
     apiKey: String,
     apiSecret: String,
   ): AlpacaClock
+
+  suspend fun getOrders(
+    apiKey: String,
+    apiSecret: String,
+  ): List<AlpacaOrder>
 }
