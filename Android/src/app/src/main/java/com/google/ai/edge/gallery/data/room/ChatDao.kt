@@ -28,4 +28,10 @@ interface ChatDao {
 
   @Query("SELECT * FROM chat_history ORDER BY timestamp DESC")
   fun getAllHistory(): Flow<List<ChatHistory>>
+
+  @Query("DELETE FROM chat_history WHERE id = :id")
+  suspend fun deleteHistory(id: Int)
+
+  @Query("DELETE FROM chat_history")
+  suspend fun deleteAllHistory()
 }

@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class ChatHistoryUiState(
     val history: List<ChatHistory> = emptyList(),
@@ -33,7 +34,7 @@ data class ChatHistoryUiState(
 
 @HiltViewModel
 class ChatHistoryViewModel @Inject constructor(
-    chatDao: ChatDao,
+    private val chatDao: ChatDao,
 ) : ViewModel() {
 
     val uiState: StateFlow<ChatHistoryUiState> = chatDao.getAllHistory()
@@ -44,4 +45,16 @@ class ChatHistoryViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ChatHistoryUiState()
         )
+
+    fun deleteHistory(id: Int) {
+        viewModelScope.launch {
+            chatDao.deleteHistory(id)
+        }
+    }
+
+    fun deleteAllHistory() {
+        viewModelScope.launch {
+            chatDao.deleteAllHistory()
+        }
+    }
 }

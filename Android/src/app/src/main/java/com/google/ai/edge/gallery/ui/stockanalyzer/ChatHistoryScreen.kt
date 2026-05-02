@@ -26,10 +26,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,24 +75,52 @@ fun ChatHistoryScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (uiState.history.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = { viewModel.deleteAllHistory() },
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = "Delete all history"
+                    )
+                }
+            }
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                // Spacer at top
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 8.dp))
+            }
             items(uiState.history) { chat ->
-                ChatHistoryCard(chat = chat)
+                ChatHistoryCard(
+                    chat = chat,
+                    onDelete = { viewModel.deleteHistory(chat.id) }
+                )
+            }
+            item {
+                // Spacer at bottom for FAB
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(bottom = 80.dp))
             }
         }
     }
 }
 
 @Composable
-fun ChatHistoryCard(chat: ChatHistory) {
+fun ChatHistoryCard(
+    chat: ChatHistory,
+    onDelete: () -> Unit
+) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     val dateString = dateFormat.format(Date(chat.timestamp))
 
@@ -104,17 +134,26 @@ fun ChatHistoryCard(chat: ChatHistory) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = chat.accountName,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = dateString,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = chat.accountName,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = dateString,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = "Delete entry",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             
             Text(
