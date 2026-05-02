@@ -22,7 +22,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -200,16 +199,14 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Timer Worker",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Show counting progress"
-            }
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            channelId,
+            "Timer Worker",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "createNotificationChannel"
         }
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun createForegroundInfo(msg: String): ForegroundInfo {
@@ -231,14 +228,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             .setContentIntent(pendingIntent)
             .build()
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(
-                notificationId,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            ForegroundInfo(notificationId, notification)
-        }
+        return ForegroundInfo(
+            notificationId,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
     }
 }
