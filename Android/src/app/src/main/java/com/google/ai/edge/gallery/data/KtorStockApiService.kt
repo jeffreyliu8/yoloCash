@@ -31,4 +31,11 @@ class KtorStockApiService(
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
     }
+
+    override suspend fun getClock(apiKey: String, apiSecret: String): AlpacaClock {
+        return client.get("${baseUrl}v2/clock") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+    }
 }

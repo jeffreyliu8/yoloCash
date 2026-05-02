@@ -77,10 +77,29 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         return try {
             createNotificationChannel()
-            setForeground(createForegroundInfo("Initializing model..."))
+            setForeground(createForegroundInfo("Checking market status..."))
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
             val chatDao = entryPoint.chatDao()
+            val stockDao = entryPoint.stockDao()
+            val stockApiService = entryPoint.stockApiService()
 
+            // Check if market is open
+            val credentials = stockDao.getAllCredentials().first()
+            if (credentials.isNotEmpty()) {
+                val firstCredential = credentials[0]
+                try {
+                    val clock = stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
+                    if (!clock.isOpen) {
+                        Log.d(TAG, "Market is closed. Stopping worker.")
+                        setForeground(createForegroundInfo("Market is closed. Stopping."))
+                        return Result.success()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to check market status", e)
+                }
+            }
+
+            setForeground(createForegroundInfo("Initializing model..."))
             val json = entryPoint.json()
 
             // 1. Find Gemma 4 model
@@ -113,10 +132,6 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 Log.e(TAG, "Failed to initialize model: $initializationError")
                 return Result.failure()
             }
-
-            val stockDao = entryPoint.stockDao()
-            val stockApiService = entryPoint.stockApiService()
-            val credentials = stockDao.getAllCredentials().first()
 
             for (credential in credentials) {
                 setForeground(createForegroundInfo("Processing ${credential.name}..."))

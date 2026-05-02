@@ -41,9 +41,22 @@ data class AlpacaAccount(
   @SerialName("daytrade_count") val daytradeCount: Int,
 )
 
+@Serializable
+data class AlpacaClock(
+  @SerialName("timestamp") val timestamp: String,
+  @SerialName("is_open") val isOpen: Boolean,
+  @SerialName("next_open") val nextOpen: String,
+  @SerialName("next_close") val nextClose: String,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
     apiSecret: String,
   ): AlpacaAccount
+
+  suspend fun getClock(
+    apiKey: String,
+    apiSecret: String,
+  ): AlpacaClock
 }
