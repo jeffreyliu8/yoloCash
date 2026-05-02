@@ -173,9 +173,23 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 
                 model.runtimeHelper.resetConversation(model, tools = tools)
                 
-                val prompt = "Provide a brief summary for the account ${credential.name}. Use your tools to check account status and open orders."
+                val watchlist = stockDao.getWatchlist(credential.name).first()
+                val symbols = watchlist.map { it.symbol }.joinToString(", ")
 
-                val responseText = suspendCancellableCoroutine { continuation ->
+                val prompt = """
+                    Analyze the Alpaca account '${credential.name}'.
+                    Watchlist symbols: $symbols
+                    
+                    Tasks:
+                    1. Check account status (cash, equity).
+                    2. Check open orders.
+                    3. For each symbol in the watchlist, check its current price and calculate MACD.
+                    4. Based on the MACD (bullish/bearish) and your available cash, decide if any buy or sell orders should be placed.
+                    5. If you decide to trade, use the placeOrder tool. Limit your trades to small quantities (e.g., 1 share) for now.
+                    6. Provide a summary of your actions and reasoning.
+                """.trimIndent()
+
+                val inferenceResult = suspendCancellableCoroutine<kotlin.Result<String>> { continuation ->
                     var fullResponse = ""
                     model.runtimeHelper.runInference(
                         model = model,
@@ -183,24 +197,33 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         resultListener = { partial, done, _ ->
                             fullResponse += partial
                             if (done) {
-                                continuation.resume(fullResponse.trim())
+                                continuation.resume(kotlin.Result.success(fullResponse.trim()))
                             }
                         },
                         cleanUpListener = {},
                         onError = { error ->
-                            Log.e(TAG, "Inference error: $error")
-                            continuation.resume("")
+                            continuation.resume(kotlin.Result.failure(Exception(error)))
                         },
                         coroutineScope = null
                     )
                 }
 
-                if (responseText.isNotEmpty()) {
-                    logToBoth(
-                        header = "Analysis for ${credential.name}",
-                        content = responseText
-                    )
-                }
+                inferenceResult.fold(
+                    onSuccess = { responseText ->
+                        if (responseText.isNotEmpty()) {
+                            logToBoth(
+                                header = "Analysis for ${credential.name}",
+                                content = responseText
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        logToBoth(
+                            header = "Inference error",
+                            content = error.message ?: "Unknown error"
+                        )
+                    }
+                )
             }
 
             // Clean up

@@ -20,6 +20,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.contentType
 
 class KtorStockApiService(
     private val client: HttpClient,
@@ -56,5 +59,48 @@ class KtorStockApiService(
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
         return response.trade.price
+    }
+
+    override suspend fun getBars(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String,
+        timeframe: String,
+        limit: Int
+    ): List<AlpacaBar> {
+        val response: AlpacaBarsResponse = client.get("https://data.alpaca.markets/v2/stocks/$symbol/bars") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+            url {
+                parameters.append("timeframe", timeframe)
+                parameters.append("limit", limit.toString())
+            }
+        }.body()
+        return response.bars
+    }
+
+    override suspend fun postOrder(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String,
+        qty: String,
+        side: String,
+        type: String,
+        timeInForce: String
+    ): AlpacaOrder {
+        return client.post("${baseUrl}v2/orders") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+            contentType(io.ktor.http.ContentType.Application.Json)
+            setBody(
+                mapOf(
+                    "symbol" to symbol,
+                    "qty" to qty,
+                    "side" to side,
+                    "type" to type,
+                    "time_in_force" to timeInForce
+                )
+            )
+        }.body()
     }
 }

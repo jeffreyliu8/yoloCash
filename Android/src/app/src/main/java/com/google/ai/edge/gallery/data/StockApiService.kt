@@ -72,6 +72,23 @@ data class AlpacaLatestTrade(
   @SerialName("trade") val trade: AlpacaTrade,
 )
 
+@Serializable
+data class AlpacaBar(
+  @SerialName("t") val timestamp: String,
+  @SerialName("o") val open: Double,
+  @SerialName("h") val high: Double,
+  @SerialName("l") val low: Double,
+  @SerialName("c") val close: Double,
+  @SerialName("v") val volume: Long,
+)
+
+@Serializable
+data class AlpacaBarsResponse(
+  @SerialName("bars") val bars: List<AlpacaBar>,
+  @SerialName("symbol") val symbol: String,
+  @SerialName("next_page_token") val nextPageToken: String? = null,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
@@ -93,4 +110,22 @@ interface StockApiService {
     apiSecret: String,
     symbol: String,
   ): Double
+
+  suspend fun getBars(
+    apiKey: String,
+    apiSecret: String,
+    symbol: String,
+    timeframe: String = "1Day",
+    limit: Int = 100
+  ): List<AlpacaBar>
+
+  suspend fun postOrder(
+    apiKey: String,
+    apiSecret: String,
+    symbol: String,
+    qty: String,
+    side: String,
+    type: String = "market",
+    timeInForce: String = "gtc"
+  ): AlpacaOrder
 }
