@@ -102,10 +102,14 @@ fun ChatHistoryScreen(
                 // Spacer at top
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 8.dp))
             }
-            items(uiState.history) { chat ->
+            items(
+                items = uiState.history,
+                key = { it.id }
+            ) { chat ->
                 ChatHistoryCard(
                     chat = chat,
-                    onDelete = { viewModel.deleteHistory(chat.id) }
+                    onDelete = { viewModel.deleteHistory(chat.id) },
+                    modifier = Modifier.animateItem()
                 )
             }
             item {
@@ -119,13 +123,14 @@ fun ChatHistoryScreen(
 @Composable
 fun ChatHistoryCard(
     chat: ChatHistory,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     val dateString = dateFormat.format(Date(chat.timestamp))
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
