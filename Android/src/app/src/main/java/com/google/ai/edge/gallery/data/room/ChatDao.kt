@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChatDao {
   @Insert
-  suspend fun insertResponse(response: ChatResponse)
+  suspend fun insertHistory(history: ChatHistory)
 
-  @Query("SELECT * FROM chat_responses ORDER BY timestamp DESC")
-  fun getAllResponses(): Flow<List<ChatResponse>>
+  @Query("SELECT * FROM chat_history ORDER BY timestamp DESC")
+  fun getAllHistory(): Flow<List<ChatHistory>>
 }

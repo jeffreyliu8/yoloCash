@@ -20,7 +20,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(
-  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, ChatResponse::class],
+  entities = [AlpacaCredentialEntity::class, WatchlistStockEntity::class, ChatHistory::class],
   version = 1,
   exportSchema = false
 )

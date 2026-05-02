@@ -34,7 +34,7 @@ import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.ModelAllowlist
 import com.google.ai.edge.gallery.data.room.ChatDao
-import com.google.ai.edge.gallery.data.room.ChatResponse
+import com.google.ai.edge.gallery.data.room.ChatHistory
 import com.google.ai.edge.gallery.runtime.runtimeHelper
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
@@ -131,7 +131,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             // 5. Save to Room
             if (responseText.isNotEmpty()) {
                 Log.d(TAG, "Received response: $responseText")
-                chatDao.insertResponse(ChatResponse(prompt = prompt, response = responseText))
+                chatDao.insertHistory(ChatHistory(prompt = prompt, response = responseText))
             }
 
             // Clean up

@@ -19,8 +19,8 @@ package com.google.ai.edge.gallery.data.room
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "chat_responses")
-data class ChatResponse(
+@Entity(tableName = "chat_history")
+data class ChatHistory(
   @PrimaryKey(autoGenerate = true) val id: Int = 0,
   val prompt: String,
   val response: String,
