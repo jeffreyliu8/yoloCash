@@ -74,7 +74,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         return try {
             createNotificationChannel()
-
+            createForegroundInfo("Start doing timerWorker")
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
             val chatDao = entryPoint.chatDao()
 
@@ -116,8 +116,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             val credentials = stockDao.getAllCredentials().first()
 
             for (credential in credentials) {
-                createForegroundInfo("Processing credentail ${credential.name}")
-                // 4. Get Account Status
+                createForegroundInfo("Processing ${credential.name}")
+                model.runtimeHelper.resetConversation(model)
+                //  Get Account Status
                 val account = try {
                     stockApiService.getAccount(credential.apiKey, credential.apiSecret)
                 } catch (e: Exception) {
@@ -126,10 +127,6 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 }
 
                 if (account != null) {
-                    // 5. Reset conversation for a new session
-                    model.runtimeHelper.resetConversation(model)
-
-                    // 6. Run Inference
                     val prompt =
                         "Summarize the account status for ${credential.name}: Cash=${account.cash}, Equity=${account.equity}, Portfolio Value=${account.portfolioValue}. Keep it brief."
                     val responseText = suspendCancellableCoroutine { continuation ->
