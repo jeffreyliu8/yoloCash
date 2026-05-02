@@ -40,11 +40,11 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.delay
-import kotlinx.serialization.json.Json
 
 private const val TAG = "AGTimerWorker"
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
@@ -90,7 +90,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             // 3. Initialize model
-            val initializationError = suspendCoroutine { continuation ->
+            val initializationError = suspendCancellableCoroutine { continuation ->
                 model.runtimeHelper.initialize(
                     context = applicationContext,
                     model = model,
@@ -108,7 +108,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
             // 4. Send "hello"
             val prompt = "hello"
-            val responseText = suspendCoroutine { continuation ->
+            val responseText = suspendCancellableCoroutine { continuation ->
                 var fullResponse = ""
                 model.runtimeHelper.runInference(
                     model = model,
@@ -135,7 +135,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             // Clean up
-            suspendCoroutine { continuation ->
+            suspendCancellableCoroutine { continuation ->
                 model.runtimeHelper.cleanUp(model = model, onDone = { continuation.resume(Unit) })
             }
 
