@@ -174,7 +174,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 model.runtimeHelper.resetConversation(model, tools = tools)
                 
                 val watchlist = stockDao.getWatchlist(credential.name).first()
-                val symbols = watchlist.map { it.symbol }.joinToString(", ")
+                val symbols = watchlist.joinToString(", ") { it.symbol }
 
                 val prompt = """
                     Analyze the Alpaca account '${credential.name}'.
