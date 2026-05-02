@@ -155,7 +155,13 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     // 7. Save to Room
                     if (responseText.isNotEmpty()) {
                         Log.d(TAG, "Received response for ${credential.name}: $responseText")
-                        chatDao.insertHistory(ChatHistory(prompt = prompt, response = responseText))
+                        chatDao.insertHistory(
+                            ChatHistory(
+                                prompt = prompt,
+                                response = responseText,
+                                accountName = credential.name
+                            )
+                        )
                     }
                 }
             }

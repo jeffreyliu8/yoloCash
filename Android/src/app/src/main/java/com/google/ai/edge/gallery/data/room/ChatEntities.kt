@@ -24,5 +24,6 @@ data class ChatHistory(
   @PrimaryKey(autoGenerate = true) val id: Int = 0,
   val prompt: String,
   val response: String,
+  val accountName: String = "",
   val timestamp: Long = System.currentTimeMillis()
 )
