@@ -23,10 +23,10 @@ The project follows a modular and extensible architecture:
     *   **Implementation:** See `ExampleCustomTask` for a reference implementation. Tasks should handle their own model lifecycle (`initializeModelFn`, `cleanUpModelFn`) and provide a `MainScreen` composable.
     *   **Existing tasks:** `agentchat`, `mobileactions`, `tinygarden`.
 *   **Model Management:** The `ModelManagerViewModel` centralizes the lifecycle of AI models, including downloading from an online allowlist (hosted on GitHub), initialization for specific backends (CPU, GPU, NPU), and cleanup. Models are associated with tasks via the `Task` and `Model` data classes.
-*   **Stock Analyzer:** A feature for paper trading using the Alpaca API.
-    *   **Features:** Manage multiple Alpaca credentials, track a stock watchlist, and view real-time account information.
-    *   **Persistence:** Uses Room Database for storing credentials and watchlist symbols.
-    *   **Integration:** Communicates with Alpaca's REST API via Ktor 3.
+*   **Stock Analyzer:** A feature for paper trading and portfolio analysis using the Alpaca API.
+    *   **Features:** Manage multiple Alpaca credentials, track per-account stock watchlists, view real-time account information, and enable a background "Debug Mode" to bypass market-close checks.
+    *   **Persistence:** Uses Room Database (`StockDao`). `WatchlistStockEntity` uses a composite primary key (`credentialName`, `symbol`) to support unique watchlists for each account. App-wide flags (e.g., `debug_mode`) are stored in `Settings` DataStore.
+    *   **Integration:** Communicates with Alpaca's REST API via Ktor 3. `TimerWorker` (scheduled via WorkManager) periodically summarizes account status and watchlist performance using on-device models.
 *   **Log Entries:** A mechanism to persist various interactions and system logs.
     *   **Persistence:** Uses Room Database (`log_entries` table) to store headers and their corresponding content.
 *   **MySettings:** A centralized settings screen accessible from the Home screen. It allows users to view all currently downloaded models and access experimental features like the Stock Analyzer.

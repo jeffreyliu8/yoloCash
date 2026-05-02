@@ -10,6 +10,16 @@ AI Edge Gallery is a modular and extensible Android application designed to show
 *   **Agent-Based Skills:** Extend AI agent capabilities through a flexible "Skills" system using `SKILL.md` and JavaScript.
 *   **Modern Android Stack:** Built with Kotlin, Jetpack Compose, Hilt, and WorkManager.
 
+## Stock Analyzer App Flow
+
+The Stock Analyzer is an experimental feature that provides on-device AI analysis of stock portfolios.
+
+1.  **Setup:** Navigate to **Settings** -> **Experimental** -> **Stock Analyzer Settings**. Enable the **Timer Worker** and **Debug Mode** (if needed to bypass market hours).
+2.  **Credentials:** From the **Home** screen, enter **Stock Analyzer**. Manage your Alpaca API credentials here.
+3.  **Account Detail:** Select an account to view its real-time equity, buying power, and portfolio status.
+4.  **Watchlist:** Use the **FAB (List Icon)** on the account detail screen to manage a per-account watchlist of stock symbols.
+5.  **AI Analysis:** The `TimerWorker` runs in the background (every 15 minutes) to fetch account data and watchlist status, using on-device models (e.g., Gemma 4) to generate summaries and insights saved to the **Log Entries** screen.
+
 ## Technologies Used
 
 *   **AI Runtimes:**
