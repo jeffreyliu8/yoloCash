@@ -27,9 +27,6 @@ interface StockDao {
     @Query("SELECT * FROM alpaca_credentials")
     fun getAllCredentials(): Flow<List<AlpacaCredentialEntity>>
 
-    @Query("SELECT * FROM alpaca_credentials WHERE name = :name")
-    suspend fun getCredential(name: String): AlpacaCredentialEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCredential(credential: AlpacaCredentialEntity)
 

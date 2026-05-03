@@ -123,7 +123,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             val json = entryPoint.json()
 
             // Initialize StockTools
-            val stockTools = StockTools(stockApiService, stockDao)
+            val stockTools = StockTools(stockApiService)
             val tools = listOf(tool(stockTools))
 
             // 1. Find Gemma 4 model
@@ -167,6 +167,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             for (credential in credentials) {
                 setForeground(createForegroundInfo("Processing ${credential.name}..."))
                 
+                // Update StockTools with current credentials
+                stockTools.apiKey = credential.apiKey
+                stockTools.apiSecret = credential.apiSecret
+                
                 model.runtimeHelper.resetConversation(model, tools = tools)
                 
                 val watchlist = stockDao.getWatchlist(credential.name).first()
@@ -177,11 +181,11 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     Watchlist symbols: $symbols
                     
                     Tasks:
-                    1. Check account status (cash, equity) for credential '${credential.name}'.
-                    2. Check open orders for credential '${credential.name}'. If an order is no longer desirable based on new analysis, consider using cancelOrder.
-                    3. For each symbol in the watchlist, check its current price, calculate MACD, and fetch the latest news using getLatestNews. Always use credential '${credential.name}'.
+                    1. Check account status (cash, equity).
+                    2. Check open orders. If an order is no longer desirable based on new analysis, consider using cancelOrder.
+                    3. For each symbol in the watchlist, check its current price, calculate MACD, and fetch the latest news using getLatestNews.
                     4. Based on the technical analysis (MACD), latest news sentiment, and your available cash, decide if any buy or sell orders should be placed.
-                    5. If you decide to trade, use the placeOrder tool with credential '${credential.name}'. Limit your trades to small quantities (e.g., 1 share) for now.
+                    5. If you decide to trade, use the placeOrder tool. Limit your trades to small quantities (e.g., 1 share) for now.
                     6. Provide a summary of your actions and reasoning, specifically mentioning how the news influenced your decisions.
                 """.trimIndent()
 
