@@ -83,9 +83,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result {
+        createNotificationChannel()
+        setForeground(getForegroundInfo())
         return try {
-            createNotificationChannel()
-            setForeground(createForegroundInfo("Checking market status..."))
             val entryPoint = EntryPoints.get(applicationContext, TimerWorkerEntryPoint::class.java)
             logDao = entryPoint.logDao()
             val stockDao = entryPoint.stockDao()
