@@ -17,21 +17,29 @@
 package com.google.ai.edge.gallery.worker
 
 import com.google.ai.edge.gallery.data.StockApiService
+import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.litertlm.Tool
 import com.google.ai.edge.litertlm.ToolParam
 import com.google.ai.edge.litertlm.ToolSet
 
 class StockTools(
     private val stockApiService: StockApiService,
-    var apiKey: String = "",
-    var apiSecret: String = ""
+    private val stockDao: StockDao
 ) : ToolSet {
 
+    private suspend fun getApiKeys(credential: String): Pair<String, String>? {
+        val entity = stockDao.getCredential(credential)
+        return if (entity != null) entity.apiKey to entity.apiSecret else null
+    }
+
     @Tool(description = "Get the current account status including cash and equity.")
-    suspend fun getAccountStatus(): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+    suspend fun getAccountStatus(
+        @ToolParam(description = "The Alpaca credential name.") credential: String
+    ): Map<String, String> {
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val account = stockApiService.getAccount(apiKey, apiSecret)
             mapOf(
@@ -46,10 +54,13 @@ class StockTools(
     }
 
     @Tool(description = "Get the number of open orders.")
-    suspend fun getOrders(): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+    suspend fun getOrders(
+        @ToolParam(description = "The Alpaca credential name.") credential: String
+    ): Map<String, String> {
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val orders = stockApiService.getOrders(apiKey, apiSecret)
             mapOf("status" to "success", "count" to orders.size.toString())
@@ -60,11 +71,13 @@ class StockTools(
 
     @Tool(description = "Get the latest stock price for a given symbol.")
     suspend fun getStockPrice(
+        @ToolParam(description = "The Alpaca credential name.") credential: String,
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
     ): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val price = stockApiService.getStockPrice(apiKey, apiSecret, symbol)
             mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
@@ -75,11 +88,13 @@ class StockTools(
 
     @Tool(description = "Calculate the MACD (Moving Average Convergence Divergence) for a stock symbol to help decide buy/sell.")
     suspend fun getMACD(
+        @ToolParam(description = "The Alpaca credential name.") credential: String,
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
     ): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val bars = stockApiService.getBars(apiKey, apiSecret, symbol, limit = 100)
             if (bars.size < 34) {
@@ -113,14 +128,16 @@ class StockTools(
 
     @Tool(description = "Place a buy or sell order for a stock.")
     suspend fun placeOrder(
+        @ToolParam(description = "The Alpaca credential name.") credential: String,
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
         @ToolParam(description = "The order type, default is 'market'.") type: String = "market"
     ): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val order = stockApiService.postOrder(apiKey, apiSecret, symbol, qty, side, type)
             mapOf(
@@ -138,11 +155,13 @@ class StockTools(
 
     @Tool(description = "Cancel an open order by its ID.")
     suspend fun cancelOrder(
+        @ToolParam(description = "The Alpaca credential name.") credential: String,
         @ToolParam(description = "The ID of the order to cancel.") orderId: String
     ): Map<String, String> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             stockApiService.deleteOrder(apiKey, apiSecret, orderId)
             mapOf("status" to "success", "message" to "Order $orderId cancelled")
@@ -153,12 +172,14 @@ class StockTools(
 
     @Tool(description = "Get the latest news for specific stock symbols or general market news.")
     suspend fun getLatestNews(
+        @ToolParam(description = "The Alpaca credential name.") credential: String,
         @ToolParam(description = "Comma-separated stock symbols, e.g., 'AAPL,TSLA'. If omitted, general market news is returned.") symbols: String? = null,
         @ToolParam(description = "The number of news items to return, default is 5.") limit: Int = 5
     ): Map<String, Any> {
-        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
-        }
+        val (apiKey, apiSecret) = getApiKeys(credential) ?: return mapOf(
+            "status" to "error",
+            "message" to "Credential '$credential' not found"
+        )
         return try {
             val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit)
             mapOf(
