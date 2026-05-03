@@ -20,7 +20,6 @@ import com.google.ai.edge.gallery.data.StockApiService
 import com.google.ai.edge.litertlm.Tool
 import com.google.ai.edge.litertlm.ToolParam
 import com.google.ai.edge.litertlm.ToolSet
-import kotlinx.coroutines.runBlocking
 
 class StockTools(
     private val stockApiService: StockApiService,
@@ -29,11 +28,11 @@ class StockTools(
 ) : ToolSet {
 
     @Tool(description = "Get the current account status including cash and equity.")
-    fun getAccountStatus(): Map<String, String> = runBlocking {
+    suspend fun getAccountStatus(): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val account = stockApiService.getAccount(apiKey, apiSecret)
             mapOf(
                 "status" to "success",
@@ -47,11 +46,11 @@ class StockTools(
     }
 
     @Tool(description = "Get the number of open orders.")
-    fun getOrders(): Map<String, String> = runBlocking {
+    suspend fun getOrders(): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val orders = stockApiService.getOrders(apiKey, apiSecret)
             mapOf("status" to "success", "count" to orders.size.toString())
         } catch (e: Exception) {
@@ -60,13 +59,13 @@ class StockTools(
     }
 
     @Tool(description = "Get the latest stock price for a given symbol.")
-    fun getStockPrice(
+    suspend fun getStockPrice(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
-    ): Map<String, String> = runBlocking {
+    ): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val price = stockApiService.getStockPrice(apiKey, apiSecret, symbol)
             mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
         } catch (e: Exception) {
@@ -75,16 +74,16 @@ class StockTools(
     }
 
     @Tool(description = "Calculate the MACD (Moving Average Convergence Divergence) for a stock symbol to help decide buy/sell.")
-    fun getMACD(
+    suspend fun getMACD(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
-    ): Map<String, String> = runBlocking {
+    ): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val bars = stockApiService.getBars(apiKey, apiSecret, symbol, limit = 100)
             if (bars.size < 34) {
-                return@runBlocking mapOf("status" to "error", "message" to "Not enough data for MACD")
+                return mapOf("status" to "error", "message" to "Not enough data for MACD")
             }
             val closes = bars.map { it.close }
             val ema12 = calculateEMA(closes, 12)
@@ -113,16 +112,16 @@ class StockTools(
     }
 
     @Tool(description = "Place a buy or sell order for a stock.")
-    fun placeOrder(
+    suspend fun placeOrder(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
         @ToolParam(description = "The order type, default is 'market'.") type: String = "market"
-    ): Map<String, String> = runBlocking {
+    ): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val order = stockApiService.postOrder(apiKey, apiSecret, symbol, qty, side, type)
             mapOf(
                 "status" to "success",
@@ -138,13 +137,13 @@ class StockTools(
     }
 
     @Tool(description = "Cancel an open order by its ID.")
-    fun cancelOrder(
+    suspend fun cancelOrder(
         @ToolParam(description = "The ID of the order to cancel.") orderId: String
-    ): Map<String, String> = runBlocking {
+    ): Map<String, String> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             stockApiService.deleteOrder(apiKey, apiSecret, orderId)
             mapOf("status" to "success", "message" to "Order $orderId cancelled")
         } catch (e: Exception) {
@@ -153,14 +152,14 @@ class StockTools(
     }
 
     @Tool(description = "Get the latest news for specific stock symbols or general market news.")
-    fun getLatestNews(
+    suspend fun getLatestNews(
         @ToolParam(description = "Comma-separated stock symbols, e.g., 'AAPL,TSLA'. If omitted, general market news is returned.") symbols: String? = null,
         @ToolParam(description = "The number of news items to return, default is 5.") limit: Int = 5
-    ): Map<String, Any> = runBlocking {
+    ): Map<String, Any> {
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return@runBlocking mapOf("status" to "error", "message" to "API credentials not set")
+            return mapOf("status" to "error", "message" to "API credentials not set")
         }
-        try {
+        return try {
             val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit)
             mapOf(
                 "status" to "success",
@@ -188,7 +187,7 @@ class StockTools(
         emaList.add(ema)
         
         for (i in period until data.size) {
-            ema = (data[i] - ema) * multiplier + ema
+            ema += (data[i] - ema) * multiplier
             emaList.add(ema)
         }
         return emaList
