@@ -89,6 +89,7 @@ import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.LogEntryScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.OrderDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.RobotChatScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerSettingsScreen
@@ -107,6 +108,7 @@ private const val ROUTE_MY_SETTINGS = "my_settings"
 private const val ROUTE_STOCK_ANALYZER = "stock_analyzer"
 private const val ROUTE_STOCK_ANALYZER_SETTINGS = "stock_analyzer_settings"
 private const val ROUTE_CREDENTIAL_DETAIL = "credential_detail"
+private const val ROUTE_ORDER_DETAIL = "order_detail"
 private const val ROUTE_LOG_ENTRIES = "log_entries"
 private const val ROUTE_WATCHLIST = "watchlist"
 private const val ROUTE_ROBOT = "robot"
@@ -506,8 +508,24 @@ fun GalleryNavHost(
         },
         onRobotClicked = { credentialName ->
           navController.navigate("$ROUTE_ROBOT/$credentialName")
+        },
+        onOrderClicked = { credentialName, orderId ->
+          navController.navigate("$ROUTE_ORDER_DETAIL/$credentialName/$orderId")
         }
       )
+    }
+
+    // Order detail page.
+    composable(
+      route = "$ROUTE_ORDER_DETAIL/{credentialName}/{orderId}",
+      arguments = listOf(
+        navArgument("credentialName") { type = NavType.StringType },
+        navArgument("orderId") { type = NavType.StringType }
+      ),
+      enterTransition = { slideEnter() },
+      exitTransition = { slideExit() },
+    ) {
+      OrderDetailScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Robot page.

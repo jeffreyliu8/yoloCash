@@ -16,6 +16,7 @@
 
 package com.google.ai.edge.gallery.ui.stockanalyzer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +63,7 @@ fun CredentialDetailScreen(
     onBackClicked: () -> Unit,
     onEditWatchlist: (String) -> Unit,
     onRobotClicked: (String) -> Unit,
+    onOrderClicked: (String, String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailViewModel = hiltViewModel(),
 ) {
@@ -146,7 +148,10 @@ fun CredentialDetailScreen(
                             PositionsCard(uiState.positions)
                         }
                         item {
-                            PendingOrdersCard(uiState.orders)
+                            PendingOrdersCard(
+                                orders = uiState.orders,
+                                onOrderClicked = { orderId -> onOrderClicked(uiState.credentialName, orderId) }
+                            )
                         }
                     }
                 }
@@ -231,7 +236,10 @@ fun PositionRow(position: AlpacaPosition) {
 }
 
 @Composable
-fun PendingOrdersCard(orders: List<AlpacaOrder>) {
+fun PendingOrdersCard(
+    orders: List<AlpacaOrder>,
+    onOrderClicked: (String) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -247,7 +255,10 @@ fun PendingOrdersCard(orders: List<AlpacaOrder>) {
                 Text("No pending orders", style = MaterialTheme.typography.bodyMedium)
             } else {
                 orders.forEach { order ->
-                    OrderRow(order)
+                    OrderRow(
+                        order = order,
+                        modifier = Modifier.clickable { onOrderClicked(order.id) }
+                    )
                     if (order != orders.last()) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp)
                     }
@@ -258,9 +269,12 @@ fun PendingOrdersCard(orders: List<AlpacaOrder>) {
 }
 
 @Composable
-fun OrderRow(order: AlpacaOrder) {
+fun OrderRow(
+    order: AlpacaOrder,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
