@@ -123,7 +123,9 @@ class KtorStockApiService(
         apiKey: String,
         apiSecret: String,
         symbols: String?,
-        limit: Int
+        limit: Int,
+        start: String?,
+        end: String?
     ): List<AlpacaNews> {
         val response: AlpacaNewsResponse = client.get("https://data.alpaca.markets/v1beta1/news") {
             header("APCA-API-KEY-ID", apiKey)
@@ -131,6 +133,8 @@ class KtorStockApiService(
             url {
                 symbols?.let { parameters.append("symbols", it) }
                 parameters.append("limit", limit.toString())
+                start?.let { parameters.append("start", it) }
+                end?.let { parameters.append("end", it) }
             }
         }.body()
         return response.news ?: emptyList()

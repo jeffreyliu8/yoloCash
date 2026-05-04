@@ -21,168 +21,170 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AlpacaAccount(
-  @SerialName("id") val id: String,
-  @SerialName("account_number") val accountNumber: String,
-  @SerialName("status") val status: String,
-  @SerialName("currency") val currency: String,
-  @SerialName("buying_power") val buyingPower: String,
-  @SerialName("regt_buying_power") val regtBuyingPower: String,
-  @SerialName("daytrading_buying_power") val daytradingBuyingPower: String,
-  @SerialName("cash") val cash: String,
-  @SerialName("portfolio_value") val portfolioValue: String,
-  @SerialName("equity") val equity: String,
-  @SerialName("last_equity") val lastEquity: String,
-  @SerialName("long_market_value") val longMarketValue: String,
-  @SerialName("short_market_value") val shortMarketValue: String,
-  @SerialName("initial_margin") val initialMargin: String,
-  @SerialName("maintenance_margin") val maintenanceMargin: String,
-  @SerialName("last_maintenance_margin") val lastMaintenanceMargin: String,
-  @SerialName("sma") val sma: String,
-  @SerialName("daytrade_count") val daytradeCount: Int,
+    @SerialName("id") val id: String,
+    @SerialName("account_number") val accountNumber: String,
+    @SerialName("status") val status: String,
+    @SerialName("currency") val currency: String,
+    @SerialName("buying_power") val buyingPower: String,
+    @SerialName("regt_buying_power") val regtBuyingPower: String,
+    @SerialName("daytrading_buying_power") val daytradingBuyingPower: String,
+    @SerialName("cash") val cash: String,
+    @SerialName("portfolio_value") val portfolioValue: String,
+    @SerialName("equity") val equity: String,
+    @SerialName("last_equity") val lastEquity: String,
+    @SerialName("long_market_value") val longMarketValue: String,
+    @SerialName("short_market_value") val shortMarketValue: String,
+    @SerialName("initial_margin") val initialMargin: String,
+    @SerialName("maintenance_margin") val maintenanceMargin: String,
+    @SerialName("last_maintenance_margin") val lastMaintenanceMargin: String,
+    @SerialName("sma") val sma: String,
+    @SerialName("daytrade_count") val daytradeCount: Int,
 )
 
 @Serializable
 data class AlpacaClock(
-  @SerialName("timestamp") val timestamp: String,
-  @SerialName("is_open") val isOpen: Boolean,
-  @SerialName("next_open") val nextOpen: String,
-  @SerialName("next_close") val nextClose: String,
+    @SerialName("timestamp") val timestamp: String,
+    @SerialName("is_open") val isOpen: Boolean,
+    @SerialName("next_open") val nextOpen: String,
+    @SerialName("next_close") val nextClose: String,
 )
 
 @Serializable
 data class AlpacaOrder(
-  @SerialName("id") val id: String,
-  @SerialName("symbol") val symbol: String,
-  @SerialName("status") val status: String,
-  @SerialName("qty") val qty: String?,
-  @SerialName("side") val side: String,
-  @SerialName("type") val type: String,
+    @SerialName("id") val id: String,
+    @SerialName("symbol") val symbol: String,
+    @SerialName("status") val status: String,
+    @SerialName("qty") val qty: String?,
+    @SerialName("side") val side: String,
+    @SerialName("type") val type: String,
 )
 
 @Serializable
 data class AlpacaTrade(
-  @SerialName("p") val price: Double,
-  @SerialName("s") val size: Int,
-  @SerialName("t") val timestamp: String,
+    @SerialName("p") val price: Double,
+    @SerialName("s") val size: Int,
+    @SerialName("t") val timestamp: String,
 )
 
 @Serializable
 data class AlpacaLatestTrade(
-  @SerialName("symbol") val symbol: String,
-  @SerialName("trade") val trade: AlpacaTrade? = null,
+    @SerialName("symbol") val symbol: String,
+    @SerialName("trade") val trade: AlpacaTrade? = null,
 )
 
 @Serializable
 data class AlpacaBar(
-  @SerialName("t") val timestamp: String,
-  @SerialName("o") val open: Double,
-  @SerialName("h") val high: Double,
-  @SerialName("l") val low: Double,
-  @SerialName("c") val close: Double,
-  @SerialName("v") val volume: Long,
+    @SerialName("t") val timestamp: String,
+    @SerialName("o") val open: Double,
+    @SerialName("h") val high: Double,
+    @SerialName("l") val low: Double,
+    @SerialName("c") val close: Double,
+    @SerialName("v") val volume: Long,
 )
 
 @Serializable
 data class AlpacaBarsResponse(
-  @SerialName("bars") val bars: List<AlpacaBar>? = null,
-  @SerialName("symbol") val symbol: String,
-  @SerialName("next_page_token") val nextPageToken: String? = null,
+    @SerialName("bars") val bars: List<AlpacaBar>? = null,
+    @SerialName("symbol") val symbol: String,
+    @SerialName("next_page_token") val nextPageToken: String? = null,
 )
 
 @Serializable
 data class AlpacaNews(
-  @SerialName("id") val id: Long,
-  @SerialName("headline") val headline: String,
-  @SerialName("summary") val summary: String,
-  @SerialName("author") val author: String,
-  @SerialName("created_at") val createdAt: String,
-  @SerialName("updated_at") val updatedAt: String,
-  @SerialName("url") val url: String? = null,
-  @SerialName("symbols") val symbols: List<String>,
-  @SerialName("source") val source: String,
+    @SerialName("id") val id: Long,
+    @SerialName("headline") val headline: String,
+    @SerialName("summary") val summary: String,
+    @SerialName("author") val author: String,
+    @SerialName("created_at") val createdAt: String,
+    @SerialName("updated_at") val updatedAt: String,
+    @SerialName("url") val url: String? = null,
+    @SerialName("symbols") val symbols: List<String>,
+    @SerialName("source") val source: String,
 )
 
 @Serializable
 data class AlpacaNewsResponse(
-  @SerialName("news") val news: List<AlpacaNews>? = null,
-  @SerialName("next_page_token") val nextPageToken: String? = null,
+    @SerialName("news") val news: List<AlpacaNews>? = null,
+    @SerialName("next_page_token") val nextPageToken: String? = null,
 )
 
 @Serializable
 data class AlpacaPosition(
-  @SerialName("asset_id") val assetId: String,
-  @SerialName("symbol") val symbol: String,
-  @SerialName("exchange") val exchange: String,
-  @SerialName("asset_class") val assetClass: String,
-  @SerialName("avg_entry_price") val avgEntryPrice: String,
-  @SerialName("qty") val qty: String,
-  @SerialName("side") val side: String,
-  @SerialName("market_value") val marketValue: String,
-  @SerialName("cost_basis") val costBasis: String,
-  @SerialName("unrealized_pl") val unrealizedPl: String,
-  @SerialName("unrealized_plpc") val unrealizedPlpc: String,
-  @SerialName("unrealized_intraday_pl") val unrealizedIntradayPl: String,
-  @SerialName("unrealized_intraday_plpc") val unrealizedIntradayPlpc: String,
-  @SerialName("current_price") val currentPrice: String,
-  @SerialName("lastday_price") val lastdayPrice: String,
-  @SerialName("change_today") val changeToday: String,
+    @SerialName("asset_id") val assetId: String,
+    @SerialName("symbol") val symbol: String,
+    @SerialName("exchange") val exchange: String,
+    @SerialName("asset_class") val assetClass: String,
+    @SerialName("avg_entry_price") val avgEntryPrice: String,
+    @SerialName("qty") val qty: String,
+    @SerialName("side") val side: String,
+    @SerialName("market_value") val marketValue: String,
+    @SerialName("cost_basis") val costBasis: String,
+    @SerialName("unrealized_pl") val unrealizedPl: String,
+    @SerialName("unrealized_plpc") val unrealizedPlpc: String,
+    @SerialName("unrealized_intraday_pl") val unrealizedIntradayPl: String,
+    @SerialName("unrealized_intraday_plpc") val unrealizedIntradayPlpc: String,
+    @SerialName("current_price") val currentPrice: String,
+    @SerialName("lastday_price") val lastdayPrice: String,
+    @SerialName("change_today") val changeToday: String,
 )
 
 interface StockApiService {
-  suspend fun getAccount(
-    apiKey: String,
-    apiSecret: String,
-  ): AlpacaAccount
+    suspend fun getAccount(
+        apiKey: String,
+        apiSecret: String,
+    ): AlpacaAccount
 
-  suspend fun getClock(
-    apiKey: String,
-    apiSecret: String,
-  ): AlpacaClock
+    suspend fun getClock(
+        apiKey: String,
+        apiSecret: String,
+    ): AlpacaClock
 
-  suspend fun getOrders(
-    apiKey: String,
-    apiSecret: String,
-  ): List<AlpacaOrder>
+    suspend fun getOrders(
+        apiKey: String,
+        apiSecret: String,
+    ): List<AlpacaOrder>
 
-  suspend fun getPositions(
-    apiKey: String,
-    apiSecret: String,
-  ): List<AlpacaPosition>
+    suspend fun getPositions(
+        apiKey: String,
+        apiSecret: String,
+    ): List<AlpacaPosition>
 
-  suspend fun getStockPrice(
-    apiKey: String,
-    apiSecret: String,
-    symbol: String,
-  ): Double
+    suspend fun getStockPrice(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String,
+    ): Double
 
-  suspend fun getBars(
-    apiKey: String,
-    apiSecret: String,
-    symbol: String,
-    timeframe: String = "1Day",
-    limit: Int = 100
-  ): List<AlpacaBar>
+    suspend fun getBars(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String,
+        timeframe: String = "1Day",
+        limit: Int = 100
+    ): List<AlpacaBar>
 
-  suspend fun postOrder(
-    apiKey: String,
-    apiSecret: String,
-    symbol: String,
-    qty: String,
-    side: String,
-    type: String = "market",
-    timeInForce: String = "gtc"
-  ): AlpacaOrder
+    suspend fun postOrder(
+        apiKey: String,
+        apiSecret: String,
+        symbol: String,
+        qty: String,
+        side: String,
+        type: String = "market",
+        timeInForce: String = "gtc"
+    ): AlpacaOrder
 
-  suspend fun deleteOrder(
-    apiKey: String,
-    apiSecret: String,
-    orderId: String
-  )
+    suspend fun deleteOrder(
+        apiKey: String,
+        apiSecret: String,
+        orderId: String
+    )
 
-  suspend fun getLatestNews(
-    apiKey: String,
-    apiSecret: String,
-    symbols: String? = null,
-    limit: Int = 10
-  ): List<AlpacaNews>
+    suspend fun getLatestNews(
+        apiKey: String,
+        apiSecret: String,
+        symbols: String? = null,
+        limit: Int = 50,
+        start: String? = null,
+        end: String? = null
+    ): List<AlpacaNews>
 }

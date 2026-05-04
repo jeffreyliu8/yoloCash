@@ -22,6 +22,9 @@ import com.google.ai.edge.litertlm.Tool
 import com.google.ai.edge.litertlm.ToolParam
 import com.google.ai.edge.litertlm.ToolSet
 import kotlinx.coroutines.runBlocking
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.coroutines.CoroutineContext
 
 private const val TAG = "StockTools"
@@ -226,10 +229,10 @@ class StockTools(
         }
     }
 
-    @Tool(description = "Get the latest news for specific stock symbols or general market news.")
+    @Tool(description = "Get the latest news for specific stock symbols or general market news from the last 30 minutes.")
     fun getLatestNews(
         @ToolParam(description = "Comma-separated stock symbols, e.g., 'AAPL,TSLA'. If omitted, general market news is returned.") symbols: String? = null,
-        @ToolParam(description = "The number of news items to return, default is 5.") limit: Int = 5
+        @ToolParam(description = "The number of news items to return, default is 50.") limit: Int = 50
     ): Map<String, Any> = runBlocking(coroutineContext) {
         Log.d(TAG, "getLatestNews(symbols=$symbols, limit=$limit) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
@@ -238,7 +241,10 @@ class StockTools(
             return@runBlocking mapOf("status" to "error", "message" to error)
         }
         try {
-            val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit)
+            val thirtyMinsAgo = Instant.now().minus(30, ChronoUnit.MINUTES)
+            val startTime = DateTimeFormatter.ISO_INSTANT.format(thirtyMinsAgo)
+            
+            val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit, start = startTime)
             val result = mapOf(
                 "status" to "success",
                 "news" to news.map {
