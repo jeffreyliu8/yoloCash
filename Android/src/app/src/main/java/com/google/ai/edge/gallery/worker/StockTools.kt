@@ -23,6 +23,8 @@ import com.google.ai.edge.litertlm.ToolParam
 import com.google.ai.edge.litertlm.ToolSet
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlin.coroutines.CoroutineContext
@@ -291,6 +293,30 @@ class StockTools(
             Log.e(TAG, "getLatestNews error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
+    }
+
+    @Tool(description = "Get the current time in New York (EST/EDT), which is useful for stock market hours.")
+    fun getCurrentNewYorkTime(): Map<String, String> {
+        val nyTime = ZonedDateTime.now(ZoneId.of("America/New_York"))
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
+        val hour = nyTime.hour
+        val minute = nyTime.minute
+        val dayOfWeek = nyTime.dayOfWeek.value // 1 (Mon) to 7 (Sun)
+
+        val isWeekday = dayOfWeek in 1..5
+        val isMarketHours = isWeekday && (
+                (hour == 9 && minute >= 30) ||
+                        (hour in 10..15) ||
+                        (hour == 16 && minute == 0)
+                )
+
+        return mapOf(
+            "status" to "success",
+            "time" to nyTime.format(formatter),
+            "is_market_open_hours" to isMarketHours.toString(),
+            "day_of_week" to nyTime.dayOfWeek.name,
+            "note" to "Regular market hours are 9:30 AM to 4:00 PM ET on weekdays."
+        )
     }
 
     /**
