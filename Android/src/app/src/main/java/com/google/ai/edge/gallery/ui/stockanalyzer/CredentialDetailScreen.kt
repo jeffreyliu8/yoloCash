@@ -53,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.data.AlpacaAccount
+import com.google.ai.edge.gallery.data.AlpacaOrder
+import com.google.ai.edge.gallery.data.AlpacaPosition
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,6 +142,12 @@ fun CredentialDetailScreen(
                                 AccountSummaryCard(account)
                             }
                         }
+                        item {
+                            PositionsCard(uiState.positions)
+                        }
+                        item {
+                            PendingOrdersCard(uiState.orders)
+                        }
                     }
                 }
             }
@@ -165,6 +173,104 @@ fun AccountSummaryCard(account: AlpacaAccount) {
             SummaryRow("Cash", "$${account.cash}")
             SummaryRow("Portfolio Value", "$${account.portfolioValue}")
             SummaryRow("Status", account.status.uppercase())
+        }
+    }
+}
+
+@Composable
+fun PositionsCard(positions: List<AlpacaPosition>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Positions", style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+
+            if (positions.isEmpty()) {
+                Text("No open positions", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                positions.forEach { position ->
+                    PositionRow(position)
+                    if (position != positions.last()) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PositionRow(position: AlpacaPosition) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(position.symbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("$${position.marketValue}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("${position.qty} shares @ $${position.avgEntryPrice}", style = MaterialTheme.typography.bodySmall)
+            val pl = position.unrealizedPl.toDoubleOrNull() ?: 0.0
+            val plColor = if (pl >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            Text(
+                "${if (pl >= 0) "+" else ""}$${position.unrealizedPl} (${position.unrealizedPlpc}%)",
+                style = MaterialTheme.typography.bodySmall,
+                color = plColor
+            )
+        }
+    }
+}
+
+@Composable
+fun PendingOrdersCard(orders: List<AlpacaOrder>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Pending Orders", style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+
+            if (orders.isEmpty()) {
+                Text("No pending orders", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                orders.forEach { order ->
+                    OrderRow(order)
+                    if (order != orders.last()) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OrderRow(order: AlpacaOrder) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(order.symbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("${order.side.uppercase()} ${order.type.uppercase()}", style = MaterialTheme.typography.bodySmall)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text("${order.qty ?: "0"} shares", style = MaterialTheme.typography.bodyLarge)
+            Text(order.status.uppercase(), style = MaterialTheme.typography.bodySmall)
         }
     }
 }

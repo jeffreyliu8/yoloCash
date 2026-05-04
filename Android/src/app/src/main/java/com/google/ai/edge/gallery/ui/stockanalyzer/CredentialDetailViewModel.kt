@@ -20,10 +20,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.edge.gallery.data.AlpacaAccount
+import com.google.ai.edge.gallery.data.AlpacaOrder
+import com.google.ai.edge.gallery.data.AlpacaPosition
 import com.google.ai.edge.gallery.data.StockApiService
 import com.google.ai.edge.gallery.data.room.StockDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +38,8 @@ import kotlinx.coroutines.launch
 data class CredentialDetailUiState(
   val credentialName: String = "",
   val account: AlpacaAccount? = null,
+  val orders: List<AlpacaOrder> = emptyList(),
+  val positions: List<AlpacaPosition> = emptyList(),
   val isLoading: Boolean = false,
   val error: String? = null,
 )
@@ -49,17 +54,23 @@ class CredentialDetailViewModel @Inject constructor(
   private val credentialName: String = checkNotNull(savedStateHandle["credentialName"])
 
   private val _accountInfo = MutableStateFlow<AlpacaAccount?>(null)
+  private val _orders = MutableStateFlow<List<AlpacaOrder>>(emptyList())
+  private val _positions = MutableStateFlow<List<AlpacaPosition>>(emptyList())
   private val _isLoading = MutableStateFlow(false)
   private val _error = MutableStateFlow<String?>(null)
 
   val uiState: StateFlow<CredentialDetailUiState> = combine(
     _accountInfo,
+    _orders,
+    _positions,
     _isLoading,
     _error
-  ) { account, isLoading, error ->
+  ) { account, orders, positions, isLoading, error ->
     CredentialDetailUiState(
       credentialName = credentialName,
       account = account,
+      orders = orders,
+      positions = positions,
       isLoading = isLoading,
       error = error
     )
@@ -80,8 +91,13 @@ class CredentialDetailViewModel @Inject constructor(
       try {
         val credential = getCredential()
         if (credential != null) {
-          val account = stockApiService.getAccount(credential.apiKey, credential.apiSecret)
-          _accountInfo.value = account
+          val accountDeferred = async { stockApiService.getAccount(credential.apiKey, credential.apiSecret) }
+          val ordersDeferred = async { stockApiService.getOrders(credential.apiKey, credential.apiSecret) }
+          val positionsDeferred = async { stockApiService.getPositions(credential.apiKey, credential.apiSecret) }
+
+          _accountInfo.value = accountDeferred.await()
+          _orders.value = ordersDeferred.await()
+          _positions.value = positionsDeferred.await()
         } else {
           _error.value = "Credential not found"
         }
