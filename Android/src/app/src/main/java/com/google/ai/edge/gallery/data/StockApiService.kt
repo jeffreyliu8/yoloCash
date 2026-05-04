@@ -108,6 +108,26 @@ data class AlpacaNewsResponse(
   @SerialName("next_page_token") val nextPageToken: String? = null,
 )
 
+@Serializable
+data class AlpacaPosition(
+  @SerialName("asset_id") val assetId: String,
+  @SerialName("symbol") val symbol: String,
+  @SerialName("exchange") val exchange: String,
+  @SerialName("asset_class") val assetClass: String,
+  @SerialName("avg_entry_price") val avgEntryPrice: String,
+  @SerialName("qty") val qty: String,
+  @SerialName("side") val side: String,
+  @SerialName("market_value") val marketValue: String,
+  @SerialName("cost_basis") val costBasis: String,
+  @SerialName("unrealized_pl") val unrealizedPl: String,
+  @SerialName("unrealized_plpc") val unrealizedPlpc: String,
+  @SerialName("unrealized_intraday_pl") val unrealizedIntradayPl: String,
+  @SerialName("unrealized_intraday_plpc") val unrealizedIntradayPlpc: String,
+  @SerialName("current_price") val currentPrice: String,
+  @SerialName("lastday_price") val lastdayPrice: String,
+  @SerialName("change_today") val changeToday: String,
+)
+
 interface StockApiService {
   suspend fun getAccount(
     apiKey: String,
@@ -123,6 +143,11 @@ interface StockApiService {
     apiKey: String,
     apiSecret: String,
   ): List<AlpacaOrder>
+
+  suspend fun getPositions(
+    apiKey: String,
+    apiSecret: String,
+  ): List<AlpacaPosition>
 
   suspend fun getStockPrice(
     apiKey: String,

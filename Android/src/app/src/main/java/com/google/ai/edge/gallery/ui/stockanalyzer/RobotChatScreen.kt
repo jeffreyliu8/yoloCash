@@ -74,7 +74,7 @@ fun RobotChatScreen(
 
             val systemInstruction = if (credential != null) {
                 Contents.of("You are a helpful robot financial assistant for the Alpaca account '${credential.name}'. " +
-                        "You have tools to check account status, orders, stock prices, and news. " +
+                        "You have tools to check account status, current positions, orders, stock prices, and news. " +
                         "Use them to provide accurate information to the user.")
             } else null
 

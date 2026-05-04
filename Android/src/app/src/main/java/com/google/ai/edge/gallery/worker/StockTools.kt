@@ -76,6 +76,37 @@ class StockTools(
         }
     }
 
+    @Tool(description = "Get the current positions in the portfolio.")
+    fun getPositions(): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getPositions() called")
+        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
+            val error = "API credentials not set"
+            Log.e(TAG, "getPositions error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
+        }
+        try {
+            val positions = stockApiService.getPositions(apiKey, apiSecret)
+            val result = mapOf(
+                "status" to "success",
+                "positions" to positions.map {
+                    mapOf(
+                        "symbol" to it.symbol,
+                        "qty" to it.qty,
+                        "market_value" to it.marketValue,
+                        "current_price" to it.currentPrice,
+                        "unrealized_pl" to it.unrealizedPl,
+                        "change_today" to it.changeToday
+                    )
+                }
+            )
+            Log.d(TAG, "getPositions result: success (${positions.size} positions)")
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "getPositions error: ${e.message}", e)
+            mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
+        }
+    }
+
     @Tool(description = "Get the latest stock price for a given symbol.")
     fun getStockPrice(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String

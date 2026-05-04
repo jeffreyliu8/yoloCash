@@ -50,6 +50,13 @@ class KtorStockApiService(
         }.body()
     }
 
+    override suspend fun getPositions(apiKey: String, apiSecret: String): List<AlpacaPosition> {
+        return client.get("${baseUrl}v2/positions") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+    }
+
     override suspend fun getStockPrice(
         apiKey: String,
         apiSecret: String,

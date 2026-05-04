@@ -183,11 +183,12 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     
                     Tasks:
                     1. Check account status (cash, equity).
-                    2. Check open orders. If an order is no longer desirable based on new analysis, consider using cancelOrder.
-                    3. For each symbol in the watchlist, check its current price, calculate MACD, and fetch the latest news using getLatestNews.
-                    4. Based on the technical analysis (MACD), latest news sentiment, and your available cash, decide if any buy or sell orders should be placed.
-                    5. If you decide to trade, use the placeOrder tool. Limit your trades to small quantities (e.g., 1 share) for now.
-                    6. Provide a summary of your actions and reasoning, specifically mentioning how the news influenced your decisions.
+                    2. Check current positions (getPositions).
+                    3. Check open orders. If an order is no longer desirable based on new analysis, consider using cancelOrder.
+                    4. For each symbol in the watchlist, check its current price, calculate MACD, and fetch the latest news using getLatestNews.
+                    5. Based on the current positions, technical analysis (MACD), latest news sentiment, and your available cash, decide if any buy or sell orders should be placed.
+                    6. If you decide to trade, use the placeOrder tool. Limit your trades to small quantities (e.g., 1 share) for now.
+                    7. Provide a summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.
                 """.trimIndent()
 
                 val inferenceResult = suspendCancellableCoroutine<kotlin.Result<String>> { continuation ->
