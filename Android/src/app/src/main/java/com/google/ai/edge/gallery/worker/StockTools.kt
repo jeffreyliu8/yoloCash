@@ -258,6 +258,21 @@ class StockTools(
         }
     }
 
+    /**
+     * Calculates the Exponential Moving Average (EMA) for a list of data points.
+     *
+     * Unlike a Simple Moving Average (SMA), the EMA gives more weight to recent prices,
+     * making it more sensitive to new market trends.
+     *
+     * The calculation follows these steps:
+     * 1. Initial Seed: The first [period] data points are averaged (SMA) to start the EMA.
+     * 2. Multiplier: A smoothing factor is calculated as `2 / (period + 1)`.
+     * 3. Recursive Update: Each subsequent EMA is calculated as:
+     *    `EMA = (Current Price - Previous EMA) * Multiplier + Previous EMA`
+     *
+     * In this project, this is used by [getMACD] to calculate the 12-period and 26-period
+     * EMAs for the MACD line, and the 9-period EMA of that line for the Signal line.
+     */
     private fun calculateEMA(data: List<Double>, period: Int): List<Double> {
         if (data.size < period) return List(data.size) { 0.0 }
         val emaList = mutableListOf<Double>()
