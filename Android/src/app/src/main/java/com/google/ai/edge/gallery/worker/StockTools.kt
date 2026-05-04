@@ -138,8 +138,8 @@ class StockTools(
     fun getMACD(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The timeframe for each bar, e.g., '1Min', '5Min', '15Min', '1Day'. Default is '1Min'.") timeframe: String = "1Min",
-        @ToolParam(description = "The start date/time for the data range in RFC3339 format, e.g., '2023-10-01T00:00:00Z'.") start: String? = null,
-        @ToolParam(description = "The end date/time for the data range in RFC3339 format, e.g., '2023-10-10T23:59:59Z'.") end: String? = null
+        @ToolParam(description = "The inclusive start of the interval. Format: RFC-3339 or YYYY-MM-DD. Default: the beginning of the current day, but at least 15 minutes ago if the user doesn't have real-time access for the feed.") start: String? = null,
+        @ToolParam(description = "The inclusive end of the interval. Format: RFC-3339 or YYYY-MM-DD. Default: the current time if the user has a real-time access for the feed, otherwise 15 minutes before the current time.") end: String? = null
     ): Map<String, Any> = runBlocking(coroutineContext) {
         Log.d(TAG, "getMACD(symbol=$symbol, timeframe=$timeframe, start=$start, end=$end) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
