@@ -69,7 +69,7 @@ data class AlpacaTrade(
 @Serializable
 data class AlpacaLatestTrade(
   @SerialName("symbol") val symbol: String,
-  @SerialName("trade") val trade: AlpacaTrade,
+  @SerialName("trade") val trade: AlpacaTrade? = null,
 )
 
 @Serializable
@@ -84,7 +84,7 @@ data class AlpacaBar(
 
 @Serializable
 data class AlpacaBarsResponse(
-  @SerialName("bars") val bars: List<AlpacaBar>,
+  @SerialName("bars") val bars: List<AlpacaBar>? = null,
   @SerialName("symbol") val symbol: String,
   @SerialName("next_page_token") val nextPageToken: String? = null,
 )
@@ -104,7 +104,7 @@ data class AlpacaNews(
 
 @Serializable
 data class AlpacaNewsResponse(
-  @SerialName("news") val news: List<AlpacaNews>,
+  @SerialName("news") val news: List<AlpacaNews>? = null,
   @SerialName("next_page_token") val nextPageToken: String? = null,
 )
 

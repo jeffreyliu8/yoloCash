@@ -59,7 +59,7 @@ class KtorStockApiService(
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
-        return response.trade.price
+        return response.trade?.price ?: 0.0
     }
 
     override suspend fun getBars(
@@ -77,7 +77,7 @@ class KtorStockApiService(
                 parameters.append("limit", limit.toString())
             }
         }.body()
-        return response.bars
+        return response.bars ?: emptyList()
     }
 
     override suspend fun postOrder(
@@ -126,6 +126,6 @@ class KtorStockApiService(
                 parameters.append("limit", limit.toString())
             }
         }.body()
-        return response.news
+        return response.news ?: emptyList()
     }
 }
