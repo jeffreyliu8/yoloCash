@@ -94,7 +94,7 @@ fun WatchlistScreen(
             ) {
                 OutlinedTextField(
                     value = newStockSymbol,
-                    onValueChange = { newStockSymbol = it },
+                    onValueChange = { newStockSymbol = it.uppercase() },
                     label = { Text("Stock Symbol (e.g. AAPL)") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
