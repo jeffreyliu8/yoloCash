@@ -78,8 +78,7 @@ class CredentialDetailViewModel @Inject constructor(
       _isLoading.value = true
       _error.value = null
       try {
-        val credentials = stockDao.getAllCredentials().first()
-        val credential = credentials.find { it.name == credentialName }
+        val credential = getCredential()
         if (credential != null) {
           val account = stockApiService.getAccount(credential.apiKey, credential.apiSecret)
           _accountInfo.value = account
@@ -93,4 +92,8 @@ class CredentialDetailViewModel @Inject constructor(
       }
     }
   }
+
+  suspend fun getCredential() = stockDao.getAllCredentials().first().find { it.name == credentialName }
+
+  fun getStockApiService() = stockApiService
 }

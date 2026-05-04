@@ -59,7 +59,7 @@ import com.google.ai.edge.gallery.data.AlpacaAccount
 fun CredentialDetailScreen(
     onBackClicked: () -> Unit,
     onEditWatchlist: (String) -> Unit,
-    onRobotClicked: () -> Unit,
+    onRobotClicked: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailViewModel = hiltViewModel(),
 ) {
@@ -85,7 +85,7 @@ fun CredentialDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 FloatingActionButton(
-                    onClick = onRobotClicked
+                    onClick = { onRobotClicked(uiState.credentialName) }
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.SmartToy,

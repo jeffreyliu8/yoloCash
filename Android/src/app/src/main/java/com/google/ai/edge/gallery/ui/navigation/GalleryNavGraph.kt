@@ -89,7 +89,7 @@ import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.LogEntryScreen
-import com.google.ai.edge.gallery.ui.stockanalyzer.RobotScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.RobotChatScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerSettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.WatchlistScreen
@@ -504,17 +504,23 @@ fun GalleryNavHost(
         onEditWatchlist = { credentialName ->
           navController.navigate("$ROUTE_WATCHLIST/$credentialName")
         },
-        onRobotClicked = { navController.navigate(ROUTE_ROBOT) }
+        onRobotClicked = { credentialName ->
+          navController.navigate("$ROUTE_ROBOT/$credentialName")
+        }
       )
     }
 
     // Robot page.
     composable(
-      route = ROUTE_ROBOT,
+      route = "$ROUTE_ROBOT/{credentialName}",
+      arguments = listOf(navArgument("credentialName") { type = NavType.StringType }),
       enterTransition = { slideEnter() },
       exitTransition = { slideExit() },
     ) {
-      RobotScreen(onBackClicked = { navController.navigateUp() })
+      RobotChatScreen(
+        onBackClicked = { navController.navigateUp() },
+        modelManagerViewModel = modelManagerViewModel
+      )
     }
 
     // Watchlist page.
