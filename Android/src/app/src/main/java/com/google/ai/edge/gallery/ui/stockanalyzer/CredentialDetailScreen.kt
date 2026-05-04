@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,6 +59,7 @@ import com.google.ai.edge.gallery.data.AlpacaAccount
 fun CredentialDetailScreen(
     onBackClicked: () -> Unit,
     onEditWatchlist: (String) -> Unit,
+    onRobotClicked: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailViewModel = hiltViewModel(),
 ) {
@@ -78,13 +80,26 @@ fun CredentialDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onEditWatchlist(uiState.credentialName) }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.List,
-                    contentDescription = "Edit Watchlist"
-                )
+                FloatingActionButton(
+                    onClick = onRobotClicked
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SmartToy,
+                        contentDescription = "Robot Assistant"
+                    )
+                }
+                FloatingActionButton(
+                    onClick = { onEditWatchlist(uiState.credentialName) }
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.List,
+                        contentDescription = "Edit Watchlist"
+                    )
+                }
             }
         }
     ) { innerPadding ->

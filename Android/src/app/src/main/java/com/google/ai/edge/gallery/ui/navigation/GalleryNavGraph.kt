@@ -89,6 +89,7 @@ import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import com.google.ai.edge.gallery.ui.settings.MySettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.CredentialDetailScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.LogEntryScreen
+import com.google.ai.edge.gallery.ui.stockanalyzer.RobotScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.StockAnalyzerSettingsScreen
 import com.google.ai.edge.gallery.ui.stockanalyzer.WatchlistScreen
@@ -108,6 +109,7 @@ private const val ROUTE_STOCK_ANALYZER_SETTINGS = "stock_analyzer_settings"
 private const val ROUTE_CREDENTIAL_DETAIL = "credential_detail"
 private const val ROUTE_LOG_ENTRIES = "log_entries"
 private const val ROUTE_WATCHLIST = "watchlist"
+private const val ROUTE_ROBOT = "robot"
 private const val ENTER_ANIMATION_DURATION_MS = 500
 private val ENTER_ANIMATION_EASING = EaseOutExpo
 private const val ENTER_ANIMATION_DELAY_MS = 100
@@ -501,8 +503,18 @@ fun GalleryNavHost(
         onBackClicked = { navController.navigateUp() },
         onEditWatchlist = { credentialName ->
           navController.navigate("$ROUTE_WATCHLIST/$credentialName")
-        }
+        },
+        onRobotClicked = { navController.navigate(ROUTE_ROBOT) }
       )
+    }
+
+    // Robot page.
+    composable(
+      route = ROUTE_ROBOT,
+      enterTransition = { slideEnter() },
+      exitTransition = { slideExit() },
+    ) {
+      RobotScreen(onBackClicked = { navController.navigateUp() })
     }
 
     // Watchlist page.
