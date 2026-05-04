@@ -137,9 +137,11 @@ class StockTools(
     @Tool(description = "Calculate the MACD (Moving Average Convergence Divergence) for a stock symbol to help decide buy/sell.")
     fun getMACD(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
-        @ToolParam(description = "The timeframe for each bar, e.g., '1Min', '5Min', '15Min', '1Day'. Default is '1Min'.") timeframe: String = "1Min"
+        @ToolParam(description = "The timeframe for each bar, e.g., '1Min', '5Min', '15Min', '1Day'. Default is '1Min'.") timeframe: String = "1Min",
+        @ToolParam(description = "The start date/time for the data range in RFC3339 format, e.g., '2023-10-01T00:00:00Z'.") start: String? = null,
+        @ToolParam(description = "The end date/time for the data range in RFC3339 format, e.g., '2023-10-10T23:59:59Z'.") end: String? = null
     ): Map<String, Any> = runBlocking(coroutineContext) {
-        Log.d(TAG, "getMACD(symbol=$symbol, timeframe=$timeframe) called")
+        Log.d(TAG, "getMACD(symbol=$symbol, timeframe=$timeframe, start=$start, end=$end) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
             val error = "API credentials not set"
             Log.e(TAG, "getMACD error: $error")
@@ -151,7 +153,9 @@ class StockTools(
                 apiSecret,
                 symbol,
                 timeframe = timeframe,
-                limit = 1000
+                limit = 1000,
+                start = start,
+                end = end
             )
             if (bars.size < 34) {
                 val error = "Not enough data for MACD (found ${bars.size} bars at $timeframe)"

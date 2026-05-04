@@ -160,7 +160,9 @@ interface StockApiService {
         apiSecret: String,
         symbol: String,
         timeframe: String = "1Min",
-        limit: Int = 1000
+        limit: Int = 1000,
+        start: String? = null,
+        end: String? = null
     ): List<AlpacaBar>
 
     suspend fun postOrder(

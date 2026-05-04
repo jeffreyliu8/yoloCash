@@ -74,7 +74,9 @@ class KtorStockApiService(
         apiSecret: String,
         symbol: String,
         timeframe: String,
-        limit: Int
+        limit: Int,
+        start: String?,
+        end: String?
     ): List<AlpacaBar> {
         val response: AlpacaBarsResponse = client.get("https://data.alpaca.markets/v2/stocks/$symbol/bars") {
             header("APCA-API-KEY-ID", apiKey)
@@ -82,6 +84,8 @@ class KtorStockApiService(
             url {
                 parameters.append("timeframe", timeframe)
                 parameters.append("limit", limit.toString())
+                start?.let { parameters.append("start", it) }
+                end?.let { parameters.append("end", it) }
             }
         }.body()
         return response.bars ?: emptyList()
