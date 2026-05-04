@@ -122,7 +122,8 @@ class StockTools(
         }
         try {
             val price = stockApiService.getStockPrice(apiKey, apiSecret, symbol)
-            val result = mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
+            val result =
+                mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
             Log.d(TAG, "getStockPrice result: $result")
             result
         } catch (e: Exception) {
@@ -133,43 +134,70 @@ class StockTools(
 
     @Tool(description = "Calculate the MACD (Moving Average Convergence Divergence) for a stock symbol to help decide buy/sell.")
     fun getMACD(
-        @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
-    ): Map<String, String> = runBlocking(coroutineContext) {
-        Log.d(TAG, "getMACD(symbol=$symbol) called")
+        @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
+        @ToolParam(description = "The timeframe for each bar, e.g., '1Min', '5Min', '15Min', '1Day'. Default is '1Min'.") timeframe: String = "1Min"
+    ): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getMACD(symbol=$symbol, timeframe=$timeframe) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
             val error = "API credentials not set"
             Log.e(TAG, "getMACD error: $error")
             return@runBlocking mapOf("status" to "error", "message" to error)
         }
         try {
-            val bars = stockApiService.getBars(apiKey, apiSecret, symbol, limit = 100)
+            val bars = stockApiService.getBars(
+                apiKey,
+                apiSecret,
+                symbol,
+                timeframe = timeframe,
+                limit = 1000
+            )
             if (bars.size < 34) {
-                val error = "Not enough data for MACD (found ${bars.size} bars)"
+                val error = "Not enough data for MACD (found ${bars.size} bars at $timeframe)"
                 Log.w(TAG, "getMACD warning: $error")
                 return@runBlocking mapOf("status" to "error", "message" to error)
             }
             val closes = bars.map { it.close }
             val ema12 = calculateEMA(closes, 12)
             val ema26 = calculateEMA(closes, 26)
-            
+
             val macdLine = ema12.zip(ema26).map { (e12, e26) -> e12 - e26 }
             // MACD line is valid only from index 25 onwards (because of EMA 26)
             val validMacdLine = macdLine.drop(25)
             val signalLine = calculateEMA(validMacdLine, 9)
-            
+
+            // Return the last 10 intervals of history
+            val historyCount = 10
+            val availableCount = signalLine.size
+            val returnCount = minOf(historyCount, availableCount)
+
+            val history = (0 until returnCount).map { i ->
+                val signalIndex = availableCount - returnCount + i
+                val barIndex = bars.size - returnCount + i
+                mapOf(
+                    "time" to bars[barIndex].timestamp,
+                    "macd" to validMacdLine[signalIndex],
+                    "signal" to signalLine[signalIndex],
+                    "histogram" to (validMacdLine[signalIndex] - signalLine[signalIndex])
+                )
+            }
+
             val latestMacd = validMacdLine.last()
             val latestSignal = signalLine.last()
             val histogram = latestMacd - latestSignal
-            
+
             val result = mapOf(
                 "status" to "success",
                 "symbol" to symbol,
-                "macd" to latestMacd.toString(),
-                "signal" to latestSignal.toString(),
-                "histogram" to histogram.toString(),
-                "advice" to if (histogram > 0) "bullish" else "bearish"
+                "timeframe" to timeframe,
+                "latest" to mapOf(
+                    "macd" to latestMacd,
+                    "signal" to latestSignal,
+                    "histogram" to histogram,
+                    "advice" to if (histogram > 0) "bullish" else "bearish"
+                ),
+                "history" to history
             )
-            Log.d(TAG, "getMACD result: $result")
+            Log.d(TAG, "getMACD result: success")
             result
         } catch (e: Exception) {
             Log.e(TAG, "getMACD error: ${e.message}", e)
@@ -243,8 +271,9 @@ class StockTools(
         try {
             val thirtyMinsAgo = Instant.now().minus(30, ChronoUnit.MINUTES)
             val startTime = DateTimeFormatter.ISO_INSTANT.format(thirtyMinsAgo)
-            
-            val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit, start = startTime)
+
+            val news =
+                stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit, start = startTime)
             val result = mapOf(
                 "status" to "success",
                 "news" to news.map {
@@ -283,11 +312,11 @@ class StockTools(
         if (data.size < period) return List(data.size) { 0.0 }
         val emaList = mutableListOf<Double>()
         val multiplier = 2.0 / (period + 1)
-        
+
         var ema = data.take(period).average()
         for (i in 0 until period - 1) emaList.add(0.0)
         emaList.add(ema)
-        
+
         for (i in period until data.size) {
             ema += (data[i] - ema) * multiplier
             emaList.add(ema)
