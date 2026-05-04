@@ -16,74 +16,103 @@
 
 package com.google.ai.edge.gallery.worker
 
+import android.util.Log
 import com.google.ai.edge.gallery.data.StockApiService
 import com.google.ai.edge.litertlm.Tool
 import com.google.ai.edge.litertlm.ToolParam
 import com.google.ai.edge.litertlm.ToolSet
+import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.CoroutineContext
+
+private const val TAG = "StockTools"
 
 class StockTools(
     private val stockApiService: StockApiService,
+    private val coroutineContext: CoroutineContext,
     var apiKey: String = "",
     var apiSecret: String = ""
 ) : ToolSet {
 
     @Tool(description = "Get the current account status including cash and equity.")
-    suspend fun getAccountStatus(): Map<String, String> {
+    fun getAccountStatus(): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getAccountStatus() called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "getAccountStatus error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val account = stockApiService.getAccount(apiKey, apiSecret)
-            mapOf(
+            val result = mapOf(
                 "status" to "success",
                 "cash" to account.cash,
                 "equity" to account.equity,
                 "portfolio_value" to account.portfolioValue
             )
+            Log.d(TAG, "getAccountStatus result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "getAccountStatus error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Get the number of open orders.")
-    suspend fun getOrders(): Map<String, String> {
+    fun getOrders(): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getOrders() called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "getOrders error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val orders = stockApiService.getOrders(apiKey, apiSecret)
-            mapOf("status" to "success", "count" to orders.size.toString())
+            val result = mapOf("status" to "success", "count" to orders.size.toString())
+            Log.d(TAG, "getOrders result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "getOrders error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Get the latest stock price for a given symbol.")
-    suspend fun getStockPrice(
+    fun getStockPrice(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
-    ): Map<String, String> {
+    ): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getStockPrice(symbol=$symbol) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "getStockPrice error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val price = stockApiService.getStockPrice(apiKey, apiSecret, symbol)
-            mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
+            val result = mapOf("status" to "success", "symbol" to symbol, "price" to price.toString())
+            Log.d(TAG, "getStockPrice result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "getStockPrice error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Calculate the MACD (Moving Average Convergence Divergence) for a stock symbol to help decide buy/sell.")
-    suspend fun getMACD(
+    fun getMACD(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String
-    ): Map<String, String> {
+    ): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getMACD(symbol=$symbol) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "getMACD error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val bars = stockApiService.getBars(apiKey, apiSecret, symbol, limit = 100)
             if (bars.size < 34) {
-                return mapOf("status" to "error", "message" to "Not enough data for MACD")
+                val error = "Not enough data for MACD (found ${bars.size} bars)"
+                Log.w(TAG, "getMACD warning: $error")
+                return@runBlocking mapOf("status" to "error", "message" to error)
             }
             val closes = bars.map { it.close }
             val ema12 = calculateEMA(closes, 12)
@@ -98,7 +127,7 @@ class StockTools(
             val latestSignal = signalLine.last()
             val histogram = latestMacd - latestSignal
             
-            mapOf(
+            val result = mapOf(
                 "status" to "success",
                 "symbol" to symbol,
                 "macd" to latestMacd.toString(),
@@ -106,24 +135,30 @@ class StockTools(
                 "histogram" to histogram.toString(),
                 "advice" to if (histogram > 0) "bullish" else "bearish"
             )
+            Log.d(TAG, "getMACD result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "getMACD error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Place a buy or sell order for a stock.")
-    suspend fun placeOrder(
+    fun placeOrder(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
         @ToolParam(description = "The order type, default is 'market'.") type: String = "market"
-    ): Map<String, String> {
+    ): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "placeOrder(symbol=$symbol, qty=$qty, side=$side, type=$type) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "placeOrder error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val order = stockApiService.postOrder(apiKey, apiSecret, symbol, qty, side, type)
-            mapOf(
+            val result = mapOf(
                 "status" to "success",
                 "order_id" to order.id,
                 "symbol" to order.symbol,
@@ -131,37 +166,49 @@ class StockTools(
                 "qty" to (order.qty ?: "0"),
                 "order_status" to order.status
             )
+            Log.d(TAG, "placeOrder result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "placeOrder error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Cancel an open order by its ID.")
-    suspend fun cancelOrder(
+    fun cancelOrder(
         @ToolParam(description = "The ID of the order to cancel.") orderId: String
-    ): Map<String, String> {
+    ): Map<String, String> = runBlocking(coroutineContext) {
+        Log.d(TAG, "cancelOrder(orderId=$orderId) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "cancelOrder error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             stockApiService.deleteOrder(apiKey, apiSecret, orderId)
-            mapOf("status" to "success", "message" to "Order $orderId cancelled")
+            val result = mapOf("status" to "success", "message" to "Order $orderId cancelled")
+            Log.d(TAG, "cancelOrder result: $result")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "cancelOrder error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
 
     @Tool(description = "Get the latest news for specific stock symbols or general market news.")
-    suspend fun getLatestNews(
+    fun getLatestNews(
         @ToolParam(description = "Comma-separated stock symbols, e.g., 'AAPL,TSLA'. If omitted, general market news is returned.") symbols: String? = null,
         @ToolParam(description = "The number of news items to return, default is 5.") limit: Int = 5
-    ): Map<String, Any> {
+    ): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getLatestNews(symbols=$symbols, limit=$limit) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
-            return mapOf("status" to "error", "message" to "API credentials not set")
+            val error = "API credentials not set"
+            Log.e(TAG, "getLatestNews error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
         }
-        return try {
+        try {
             val news = stockApiService.getLatestNews(apiKey, apiSecret, symbols, limit)
-            mapOf(
+            val result = mapOf(
                 "status" to "success",
                 "news" to news.map {
                     mapOf(
@@ -172,7 +219,10 @@ class StockTools(
                     )
                 }
             )
+            Log.d(TAG, "getLatestNews result: success (${news.size} items)")
+            result
         } catch (e: Exception) {
+            Log.e(TAG, "getLatestNews error: ${e.message}", e)
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }

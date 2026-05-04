@@ -31,7 +31,7 @@ android {
   compileSdk = 37
 
   defaultConfig {
-    applicationId = "com.google.aiedge.gallery"
+    applicationId = "com.jeffliu.yolocash.ai"
     minSdk = 31
     targetSdk = 37
     versionCode = 1

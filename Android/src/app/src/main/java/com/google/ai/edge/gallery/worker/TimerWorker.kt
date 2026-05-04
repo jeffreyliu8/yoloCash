@@ -42,6 +42,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
@@ -123,7 +124,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             val json = entryPoint.json()
 
             // Initialize StockTools
-            val stockTools = StockTools(stockApiService)
+            val stockTools = StockTools(stockApiService, currentCoroutineContext())
             val tools = listOf(tool(stockTools))
 
             // 1. Find Gemma 4 model
