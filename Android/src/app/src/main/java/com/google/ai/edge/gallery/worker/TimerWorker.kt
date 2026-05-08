@@ -179,54 +179,44 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 val watchlist = stockDao.getWatchlist(credential.name).first()
                 val symbols = watchlist.joinToString(", ") { it.symbol }
 
-                val prompt = """
-                    Analyze the Alpaca account '${credential.name}'.
-                    Watchlist symbols: $symbols
-                    
-                    Tasks:
-                    1. Check account status (cash, equity).
-                    2. Check current positions (getPositions).
-                    3. Check open orders. If an order is no longer desirable based on new analysis, consider using cancelOrder.
-                    4. For each symbol in the watchlist, check its current price, calculate MACD, and fetch the latest news using getLatestNews.
-                    5. Based on the current positions, technical analysis (MACD), latest news sentiment, and your available cash, decide if any buy or sell orders should be placed.
-                    6. If you decide to trade, use the placeOrder tool. Limit your trades to small quantities (e.g., 1 share) for now.
-                    7. Provide a summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.
-                """.trimIndent()
+                // Step 1: Account Status
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "Get the current account status for '${credential.name}'.",
+                    "Account Status Step",
+                )
 
-                val inferenceResult = suspendCancellableCoroutine { continuation ->
-                    var fullResponse = ""
-                    model.runtimeHelper.runInference(
-                        model = model,
-                        input = prompt,
-                        resultListener = { partial, done, _ ->
-                            fullResponse += partial
-                            if (done) {
-                                continuation.resume(kotlin.Result.success(fullResponse.trim()))
-                            }
-                        },
-                        cleanUpListener = {},
-                        onError = { error ->
-                            continuation.resume(kotlin.Result.failure(Exception(error)))
-                        },
-                        coroutineScope = null
-                    )
-                }
+                // Step 2: Positions
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "List all current positions in this account.",
+                    "Positions Step",
+                )
 
-                inferenceResult.fold(
-                    onSuccess = { responseText ->
-                        if (responseText.isNotEmpty()) {
-                            logToBoth(
-                                header = "Analysis for ${credential.name}",
-                                content = responseText
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        logToBoth(
-                            header = "Inference error",
-                            content = error.message ?: "Unknown error"
-                        )
-                    }
+                // Step 3: Orders
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "List all currently open orders. If an order is no longer desirable based on previous analysis, consider using cancelOrder.",
+                    "Orders Step",
+                )
+
+                // Step 4: Technicals and News
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "For each of these watchlist symbols: $symbols, check its current price, calculate MACD, and fetch the latest news.",
+                    "Technicals and News Step",
+                )
+
+                // Step 5: Final analysis and trades
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "Based on all the information collected (account status, positions, orders, technicals, and news), decide if any trades (buy/sell) should be performed for the watchlist symbols. Use the placeOrder tool if you decide to trade. Limit trades to small quantities (e.g., 1 share). Finally, provide a comprehensive summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.",
+                    "Final Summary and Trading Step",
                 )
             }
 
@@ -244,6 +234,45 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             )
             Result.failure()
         }
+    }
+
+    private suspend fun runStep(
+        credentialName: String,
+        model: Model,
+        prompt: String,
+        header: String,
+    ): String {
+        logToBoth(header = "$credentialName Request: $header", content = prompt)
+        val result = suspendCancellableCoroutine { continuation ->
+            var fullResponse = ""
+            model.runtimeHelper.runInference(
+                model = model,
+                input = prompt,
+                resultListener = { partial, done, _ ->
+                    fullResponse += partial
+                    if (done) {
+                        continuation.resume(kotlin.Result.success(fullResponse.trim()))
+                    }
+                },
+                cleanUpListener = {},
+                onError = { error ->
+                    continuation.resume(kotlin.Result.failure(Exception(error)))
+                },
+                coroutineScope = null
+            )
+        }
+
+        return result.fold(
+            onSuccess = { responseText ->
+                logToBoth(header = "Response: $header", content = responseText)
+                responseText
+            },
+            onFailure = { error ->
+                val errorMessage = error.message ?: "Unknown error"
+                logToBoth(header = "Error: $header", content = errorMessage)
+                "Error: $errorMessage"
+            }
+        )
     }
 
     private suspend fun findGemma4Model(json: Json): Model? {
