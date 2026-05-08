@@ -20,20 +20,25 @@ import android.app.Application
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.ui.theme.ThemeSettings
 import com.google.firebase.FirebaseApp
+import com.orhanobut.logger.AndroidLogAdapter
+import com.orhanobut.logger.Logger
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+
 
 @HiltAndroidApp
 class GalleryApplication : Application() {
 
-  @Inject lateinit var dataStoreRepository: DataStoreRepository
+    @Inject
+    lateinit var dataStoreRepository: DataStoreRepository
 
-  override fun onCreate() {
-    super.onCreate()
+    override fun onCreate() {
+        super.onCreate()
+        Logger.addLogAdapter(AndroidLogAdapter())
 
-    // Load saved theme.
-    ThemeSettings.themeOverride.value = dataStoreRepository.readTheme()
+        // Load saved theme.
+        ThemeSettings.themeOverride.value = dataStoreRepository.readTheme()
 
-    FirebaseApp.initializeApp(this)
-  }
+        FirebaseApp.initializeApp(this)
+    }
 }

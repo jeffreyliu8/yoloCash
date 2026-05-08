@@ -38,6 +38,7 @@ import com.google.ai.edge.gallery.data.room.LogEntry
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.runtime.runtimeHelper
 import com.google.ai.edge.litertlm.tool
+import com.orhanobut.logger.Logger
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -78,7 +79,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     }
 
     private suspend fun logToBoth(header: String, content: String) {
-        Log.d(TAG, "[$header] $content")
+        Logger.d("[$header] $content")
         logDao?.insertLog(LogEntry(header = header, content = content))
         setForeground(createForegroundInfo("$header: $content"))
     }
@@ -120,7 +121,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 }
             }
 
-            setForeground(createForegroundInfo("Initializing model..."))
+            logToBoth(
+                header = "Initializing model...",
+                content = "Initializing model..."
+            )
             val json = entryPoint.json()
 
             // Initialize StockTools
@@ -167,13 +171,13 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
             for (credential in credentials) {
                 setForeground(createForegroundInfo("Processing ${credential.name}..."))
-                
+
                 // Update StockTools with current credentials
                 stockTools.apiKey = credential.apiKey
                 stockTools.apiSecret = credential.apiSecret
-                
+
                 model.runtimeHelper.resetConversation(model, tools = tools)
-                
+
                 val watchlist = stockDao.getWatchlist(credential.name).first()
                 val symbols = watchlist.joinToString(", ") { it.symbol }
 
@@ -191,24 +195,25 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     7. Provide a summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.
                 """.trimIndent()
 
-                val inferenceResult = suspendCancellableCoroutine<kotlin.Result<String>> { continuation ->
-                    var fullResponse = ""
-                    model.runtimeHelper.runInference(
-                        model = model,
-                        input = prompt,
-                        resultListener = { partial, done, _ ->
-                            fullResponse += partial
-                            if (done) {
-                                continuation.resume(kotlin.Result.success(fullResponse.trim()))
-                            }
-                        },
-                        cleanUpListener = {},
-                        onError = { error ->
-                            continuation.resume(kotlin.Result.failure(Exception(error)))
-                        },
-                        coroutineScope = null
-                    )
-                }
+                val inferenceResult =
+                    suspendCancellableCoroutine { continuation ->
+                        var fullResponse = ""
+                        model.runtimeHelper.runInference(
+                            model = model,
+                            input = prompt,
+                            resultListener = { partial, done, _ ->
+                                fullResponse += partial
+                                if (done) {
+                                    continuation.resume(kotlin.Result.success(fullResponse.trim()))
+                                }
+                            },
+                            cleanUpListener = {},
+                            onError = { error ->
+                                continuation.resume(kotlin.Result.failure(Exception(error)))
+                            },
+                            coroutineScope = null
+                        )
+                    }
 
                 inferenceResult.fold(
                     onSuccess = { responseText ->
