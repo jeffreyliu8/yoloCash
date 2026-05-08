@@ -40,77 +40,84 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StockAnalyzerSettingsViewModel @Inject constructor(
-  private val dataStoreRepository: DataStoreRepository,
-  private val stockDao: StockDao,
-  @ApplicationContext private val context: Context,
+    private val dataStoreRepository: DataStoreRepository,
+    private val stockDao: StockDao,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-  private val _isTimerEnabled = MutableStateFlow(dataStoreRepository.isTimerWorkerEnabled())
-  val isTimerEnabled = _isTimerEnabled.asStateFlow()
+    private val _isTimerEnabled = MutableStateFlow(dataStoreRepository.isTimerWorkerEnabled())
+    val isTimerEnabled = _isTimerEnabled.asStateFlow()
 
-  private val _isDebugModeEnabled = MutableStateFlow(dataStoreRepository.isDebugModeEnabled())
-  val isDebugModeEnabled = _isDebugModeEnabled.asStateFlow()
+    private val _isDebugModeEnabled = MutableStateFlow(dataStoreRepository.isDebugModeEnabled())
+    val isDebugModeEnabled = _isDebugModeEnabled.asStateFlow()
 
-  private val workManager = WorkManager.getInstance(context)
+    private val workManager = WorkManager.getInstance(context)
 
-  fun toggleTimer(enabled: Boolean) {
-    dataStoreRepository.setTimerWorkerEnabled(enabled)
-    _isTimerEnabled.value = enabled
-    if (enabled) {
-      val workRequest = PeriodicWorkRequestBuilder<TimerWorker>(15, TimeUnit.MINUTES)
-        .build()
-      workManager.enqueueUniquePeriodicWork(
-        "TimerWorker",
-        ExistingPeriodicWorkPolicy.KEEP,
-        workRequest
-      )
-    } else {
-      workManager.cancelUniqueWork("TimerWorker")
+    fun toggleTimer(enabled: Boolean) {
+        dataStoreRepository.setTimerWorkerEnabled(enabled)
+        _isTimerEnabled.value = enabled
+        if (enabled) {
+            val workRequest = PeriodicWorkRequestBuilder<TimerWorker>(15, TimeUnit.MINUTES)
+                .build()
+            workManager.enqueueUniquePeriodicWork(
+                "TimerWorker",
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+        } else {
+            workManager.cancelUniqueWork("TimerWorker")
+        }
     }
-  }
 
-  fun toggleDebugMode(enabled: Boolean) {
-    dataStoreRepository.setDebugModeEnabled(enabled)
-    _isDebugModeEnabled.value = enabled
-  }
-
-  fun triggerImmediateTimer() {
-    val workRequest = OneTimeWorkRequestBuilder<TimerWorker>().build()
-    workManager.enqueueUniqueWork(
-      "TimerWorkerImmediate",
-      ExistingWorkPolicy.REPLACE,
-      workRequest
-    )
-  }
-
-  fun populateCredentials() {
-    viewModelScope.launch {
-      stockDao.insertCredential(
-        AlpacaCredentialEntity(
-          name = "Account 1",
-          apiKey = "PKMN74Y7PMLTGKIGBKL4VV7DUF",
-          apiSecret = "CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C"
-        )
-      )
-      stockDao.insertCredential(
-        AlpacaCredentialEntity(
-          name = "Account 2",
-          apiKey = "PK3SIFRQMOJLSE443UBGHOZSCY",
-          apiSecret = "DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4"
-        )
-      )
-      stockDao.insertCredential(
-        AlpacaCredentialEntity(
-          name = "Account 3",
-          apiKey = "PKGETVNBNXWAY44G7JOHKT3BYV",
-          apiSecret = "ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u"
-        )
-      )
+    fun toggleDebugMode(enabled: Boolean) {
+        dataStoreRepository.setDebugModeEnabled(enabled)
+        _isDebugModeEnabled.value = enabled
     }
-  }
 
-  fun runLiveService() {
-    val intent = Intent(context, LiveService::class.java)
-    context.startForegroundService(intent)
-  }
+    fun triggerImmediateTimer() {
+        val workRequest = OneTimeWorkRequestBuilder<TimerWorker>().build()
+        workManager.enqueueUniqueWork(
+            "TimerWorkerImmediate",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
+    fun populateCredentials() {
+        viewModelScope.launch {
+            stockDao.insertCredential(
+                AlpacaCredentialEntity(
+                    name = "Account 1",
+                    apiKey = "PKMN74Y7PMLTGKIGBKL4VV7DUF",
+                    apiSecret = "CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C"
+                )
+            )
+            stockDao.insertCredential(
+                AlpacaCredentialEntity(
+                    name = "Account 2",
+                    apiKey = "PK3SIFRQMOJLSE443UBGHOZSCY",
+                    apiSecret = "DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4"
+                )
+            )
+            stockDao.insertCredential(
+                AlpacaCredentialEntity(
+                    name = "Account 3",
+                    apiKey = "PKGETVNBNXWAY44G7JOHKT3BYV",
+                    apiSecret = "ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u"
+                )
+            )
+        }
+    }
+
+    fun runLiveService() {
+        val intent = Intent(context, LiveService::class.java)
+        context.startForegroundService(intent)
+    }
+
+    fun stopLiveService() {
+        val intent = Intent(context, LiveService::class.java).apply {
+            action = LiveService.ACTION_STOP
+        }
+        context.startService(intent)
+    }
 }

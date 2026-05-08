@@ -47,94 +47,101 @@ import com.google.ai.edge.gallery.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockAnalyzerSettingsScreen(
-  onBackClicked: () -> Unit,
-  viewModel: StockAnalyzerSettingsViewModel = hiltViewModel()
+    onBackClicked: () -> Unit,
+    viewModel: StockAnalyzerSettingsViewModel = hiltViewModel()
 ) {
-  val isTimerEnabled by viewModel.isTimerEnabled.collectAsState()
+    val isTimerEnabled by viewModel.isTimerEnabled.collectAsState()
 
-  Scaffold(
-    topBar = {
-      CenterAlignedTopAppBar(
-        title = { Text("Settings") },
-        navigationIcon = {
-          IconButton(onClick = onBackClicked) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-              contentDescription = stringResource(R.string.cd_navigate_back_icon),
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Settings") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClicked) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_navigate_back_icon),
+                        )
+                    }
+                }
             )
-          }
         }
-      )
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(innerPadding)
+              .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("15 Minute Timer", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Execute a background worker every 15 minutes that shows a counting notification.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Switch(
+                    checked = isTimerEnabled,
+                    onCheckedChange = { viewModel.toggleTimer(it) }
+                )
+            }
+
+            HorizontalDivider()
+
+            Button(
+                onClick = { viewModel.triggerImmediateTimer() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Trigger Timer Now")
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val isDebugModeEnabled by viewModel.isDebugModeEnabled.collectAsState()
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Debug Mode", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Skip market close check in TimerWorker.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Switch(
+                    checked = isDebugModeEnabled,
+                    onCheckedChange = { viewModel.toggleDebugMode(it) }
+                )
+            }
+
+            HorizontalDivider()
+
+            Button(
+                onClick = { viewModel.populateCredentials() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Populate Credentials")
+            }
+
+            Button(
+                onClick = { viewModel.runLiveService() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Run Live Service")
+            }
+
+            Button(
+                onClick = { viewModel.stopLiveService() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Stop Live Service")
+            }
+        }
     }
-  ) { innerPadding ->
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-      ) {
-        Column(modifier = Modifier.weight(1f)) {
-          Text("15 Minute Timer", style = MaterialTheme.typography.titleMedium)
-          Text(
-            "Execute a background worker every 15 minutes that shows a counting notification.",
-            style = MaterialTheme.typography.bodySmall
-          )
-        }
-        Switch(
-          checked = isTimerEnabled,
-          onCheckedChange = { viewModel.toggleTimer(it) }
-        )
-      }
-
-      HorizontalDivider()
-
-      Button(
-        onClick = { viewModel.triggerImmediateTimer() },
-        modifier = Modifier.fillMaxWidth()
-      ) {
-        Text("Trigger Timer Now")
-      }
-
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-      ) {
-        val isDebugModeEnabled by viewModel.isDebugModeEnabled.collectAsState()
-        Column(modifier = Modifier.weight(1f)) {
-          Text("Debug Mode", style = MaterialTheme.typography.titleMedium)
-          Text(
-            "Skip market close check in TimerWorker.",
-            style = MaterialTheme.typography.bodySmall
-          )
-        }
-        Switch(
-          checked = isDebugModeEnabled,
-          onCheckedChange = { viewModel.toggleDebugMode(it) }
-        )
-      }
-
-      HorizontalDivider()
-
-      Button(
-        onClick = { viewModel.populateCredentials() },
-        modifier = Modifier.fillMaxWidth()
-      ) {
-        Text("Populate Credentials")
-      }
-
-      Button(
-        onClick = { viewModel.runLiveService() },
-        modifier = Modifier.fillMaxWidth()
-      ) {
-        Text("Run Live Service")
-      }
-    }
-  }
 }
