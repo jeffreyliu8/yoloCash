@@ -25,6 +25,7 @@ The project follows a modular and extensible architecture:
 *   **Model Management:** The `ModelManagerViewModel` centralizes the lifecycle of AI models, including downloading from an online allowlist (hosted on GitHub), initialization for specific backends (CPU, GPU, NPU), and cleanup. Models are associated with tasks via the `Task` and `Model` data classes.
 *   **Stock Analyzer:** A feature for paper trading and portfolio analysis using the Alpaca API.
     *   **Features:** Manage multiple Alpaca credentials, track per-account stock watchlists, view real-time account information, and enable a background "Debug Mode" to bypass market-close checks.
+    *   **Live Service:** Supports a foreground `LiveService` that streams real-time news from Alpaca via WebSockets. Users can start and stop this service from the settings screen.
     *   **Persistence:** Uses Room Database (`StockDao`). `WatchlistStockEntity` uses a composite primary key (`credentialName`, `symbol`) to support unique watchlists for each account. App-wide flags (e.g., `debug_mode`) are stored in `Settings` DataStore.
     *   **Integration:** Communicates with Alpaca's REST API via Ktor 3. `TimerWorker` (scheduled via WorkManager) periodically summarizes account status and watchlist performance using on-device models.
 *   **Log Entries:** A mechanism to persist various interactions and system logs.

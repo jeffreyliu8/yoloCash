@@ -19,6 +19,7 @@ The Stock Analyzer is an experimental feature that provides on-device AI analysi
 3.  **Account Detail:** Select an account to view its real-time equity, buying power, and portfolio status.
 4.  **Watchlist:** Use the **FAB (List Icon)** on the account detail screen to manage a per-account watchlist of stock symbols.
 5.  **AI Analysis:** The `TimerWorker` runs in the background (every 15 minutes) to fetch account data and watchlist status, using on-device models (e.g., Gemma 4) to generate summaries and insights saved to the **Log Entries** screen.
+6.  **Live Service:** In the **Stock Analyzer Settings**, you can also start and stop a **Live Service**. This service maintains a persistent connection to Alpaca's news stream, providing real-time updates via notifications and logging them for AI review.
 
 ## Technologies Used
 
