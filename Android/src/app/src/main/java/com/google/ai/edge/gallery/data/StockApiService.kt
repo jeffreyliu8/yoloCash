@@ -123,6 +123,21 @@ data class AlpacaMoversResponse(
 )
 
 @Serializable
+data class AlpacaWSMessage(
+    @SerialName("T") val type: String,
+    @SerialName("msg") val msg: String? = null,
+    @SerialName("id") val id: Long? = null,
+    @SerialName("headline") val headline: String? = null,
+    @SerialName("summary") val summary: String? = null,
+    @SerialName("author") val author: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("url") val url: String? = null,
+    @SerialName("symbols") val symbols: List<String>? = null,
+    @SerialName("source") val source: String? = null,
+)
+
+@Serializable
 data class AlpacaPosition(
     @SerialName("asset_id") val assetId: String,
     @SerialName("symbol") val symbol: String,
