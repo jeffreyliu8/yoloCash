@@ -264,12 +264,12 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
         return result.fold(
             onSuccess = { responseText ->
-                logToBoth(header = "Response: $header", content = responseText)
+                logToBoth(header = "$credentialName Response: $header", content = responseText)
                 responseText
             },
             onFailure = { error ->
                 val errorMessage = error.message ?: "Unknown error"
-                logToBoth(header = "Error: $header", content = errorMessage)
+                logToBoth(header = "$credentialName Error: $header", content = errorMessage)
                 "Error: $errorMessage"
             }
         )
