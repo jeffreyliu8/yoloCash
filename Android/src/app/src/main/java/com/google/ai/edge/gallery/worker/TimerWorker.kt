@@ -22,7 +22,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -50,7 +49,6 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.coroutines.resume
 
-private const val TAG = "AGTimerWorker"
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
 
 
@@ -195,25 +193,24 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     7. Provide a summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.
                 """.trimIndent()
 
-                val inferenceResult =
-                    suspendCancellableCoroutine { continuation ->
-                        var fullResponse = ""
-                        model.runtimeHelper.runInference(
-                            model = model,
-                            input = prompt,
-                            resultListener = { partial, done, _ ->
-                                fullResponse += partial
-                                if (done) {
-                                    continuation.resume(kotlin.Result.success(fullResponse.trim()))
-                                }
-                            },
-                            cleanUpListener = {},
-                            onError = { error ->
-                                continuation.resume(kotlin.Result.failure(Exception(error)))
-                            },
-                            coroutineScope = null
-                        )
-                    }
+                val inferenceResult = suspendCancellableCoroutine { continuation ->
+                    var fullResponse = ""
+                    model.runtimeHelper.runInference(
+                        model = model,
+                        input = prompt,
+                        resultListener = { partial, done, _ ->
+                            fullResponse += partial
+                            if (done) {
+                                continuation.resume(kotlin.Result.success(fullResponse.trim()))
+                            }
+                        },
+                        cleanUpListener = {},
+                        onError = { error ->
+                            continuation.resume(kotlin.Result.failure(Exception(error)))
+                        },
+                        coroutineScope = null
+                    )
+                }
 
                 inferenceResult.fold(
                     onSuccess = { responseText ->
