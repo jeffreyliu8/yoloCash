@@ -109,6 +109,20 @@ data class AlpacaNewsResponse(
 )
 
 @Serializable
+data class AlpacaMover(
+    @SerialName("symbol") val symbol: String,
+    @SerialName("percent_change") val percentChange: Double,
+    @SerialName("change") val change: Double,
+    @SerialName("price") val price: Double,
+)
+
+@Serializable
+data class AlpacaMoversResponse(
+    @SerialName("gainers") val gainers: List<AlpacaMover> = emptyList(),
+    @SerialName("losers") val losers: List<AlpacaMover> = emptyList(),
+)
+
+@Serializable
 data class AlpacaPosition(
     @SerialName("asset_id") val assetId: String,
     @SerialName("symbol") val symbol: String,
@@ -189,4 +203,9 @@ interface StockApiService {
         start: String? = null,
         end: String? = null
     ): List<AlpacaNews>
+
+    suspend fun getTopMovers(
+        apiKey: String,
+        apiSecret: String,
+    ): AlpacaMoversResponse
 }

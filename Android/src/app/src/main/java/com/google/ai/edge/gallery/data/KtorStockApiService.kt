@@ -143,4 +143,11 @@ class KtorStockApiService(
         }.body()
         return response.news ?: emptyList()
     }
+
+    override suspend fun getTopMovers(apiKey: String, apiSecret: String): AlpacaMoversResponse {
+        return client.get("https://data.alpaca.markets/v1beta1/screener/stocks/movers") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }.body()
+    }
 }

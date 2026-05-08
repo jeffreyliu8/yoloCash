@@ -183,40 +183,40 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Get the current account status for '${credential.name}'.",
+                    "Get the current account status for '${credential.name}'. Check our available buying power.",
                     "Account Status Step",
                 )
 
-                // Step 2: Positions
+                // Step 2: Scan for Gappers
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "List all current positions in this account.",
-                    "Positions Step",
+                    "Use getTopMovers tool to scan the market for today's top gainers. We are looking for momentum stocks.",
+                    "Scan Market Step",
                 )
 
-                // Step 3: Orders
+                // Step 3: Analyze Momentum
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "List all currently open orders. If an order is no longer desirable based on previous analysis, consider using cancelOrder.",
-                    "Orders Step",
+                    "Select 1 or 2 of the top gainers from the previous step that look promising (preferably priced between $1.50 and $20). Use getMACD to check their momentum and getLatestNews to find a catalyst.",
+                    "Analyze Momentum Step",
                 )
 
-                // Step 4: Technicals and News
+                // Step 4: Check Current Positions
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "For each of these watchlist symbols: $symbols, check its current price, calculate MACD, and fetch the latest news.",
-                    "Technicals and News Step",
+                    "List all current positions and open orders. If we have any existing positions that are losing momentum, we might need to sell them.",
+                    "Positions and Orders Step",
                 )
 
-                // Step 5: Final analysis and trades
+                // Step 5: Execute Momentum Trade
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Based on all the information collected (account status, positions, orders, technicals, and news), decide if any trades (buy/sell) should be performed for the watchlist symbols. Use the placeOrder tool if you decide to trade. Limit trades to small quantities (e.g., 1 share). Finally, provide a comprehensive summary of your actions and reasoning, specifically mentioning how the news and your current positions influenced your decisions.",
-                    "Final Summary and Trading Step",
+                    "Based on the Ross Cameron momentum strategy, decide if any of the scanned gappers are worth buying, or if any current positions should be sold. Use placeOrder to execute a large trade if a setup is perfect. Provide a final summary of your actions and momentum trading reasoning.",
+                    "Execute Trade Step",
                 )
             }
 

@@ -353,4 +353,31 @@ class StockTools(
         }
         return emaList
     }
+
+    @Tool(description = "Get the top market movers (gainers and losers).")
+    fun getTopMovers(): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getTopMovers() called")
+        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
+            val error = "API credentials not set"
+            Log.e(TAG, "getTopMovers error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
+        }
+        try {
+            val movers = stockApiService.getTopMovers(apiKey, apiSecret)
+            val result = mapOf(
+                "status" to "success",
+                "gainers" to movers.gainers.map { 
+                    mapOf("symbol" to it.symbol, "percent_change" to it.percentChange, "price" to it.price)
+                },
+                "losers" to movers.losers.map { 
+                    mapOf("symbol" to it.symbol, "percent_change" to it.percentChange, "price" to it.price)
+                }
+            )
+            Log.d(TAG, "getTopMovers result: success")
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "getTopMovers error: ${e.message}", e)
+            mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
+        }
+    }
 }
