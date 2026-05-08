@@ -28,6 +28,8 @@ import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.room.AlpacaCredentialEntity
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.worker.TimerWorker
+import com.google.ai.edge.gallery.worker.LiveService
+import android.content.Intent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,5 +107,10 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
         )
       )
     }
+  }
+
+  fun runLiveService() {
+    val intent = Intent(context, LiveService::class.java)
+    context.startForegroundService(intent)
   }
 }

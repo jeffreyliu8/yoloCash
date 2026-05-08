@@ -128,6 +128,13 @@ fun StockAnalyzerSettingsScreen(
       ) {
         Text("Populate Credentials")
       }
+
+      Button(
+        onClick = { viewModel.runLiveService() },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text("Run Live Service")
+      }
     }
   }
 }

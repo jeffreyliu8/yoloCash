@@ -126,6 +126,11 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
+            android:name=".worker.LiveService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <service
             android:name=".GalleryFcmMessagingService"
             android:exported="false">
             <intent-filter>
