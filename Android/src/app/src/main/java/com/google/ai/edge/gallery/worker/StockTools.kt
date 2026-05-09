@@ -355,15 +355,18 @@ class StockTools(
     }
 
     @Tool(description = "Get the top market movers (gainers and losers).")
-    fun getTopMovers(): Map<String, Any> = runBlocking(coroutineContext) {
-        Log.d(TAG, "getTopMovers() called")
+    fun getTopMovers(
+        @ToolParam(description = "Number of top gainers and losers to return. Default is 10.")
+        top: Int = 10
+    ): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getTopMovers(top=$top) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
             val error = "API credentials not set"
             Log.e(TAG, "getTopMovers error: $error")
             return@runBlocking mapOf("status" to "error", "message" to error)
         }
         try {
-            val movers = stockApiService.getTopMovers(apiKey, apiSecret)
+            val movers = stockApiService.getTopMovers(apiKey, apiSecret, top)
             val result = mapOf(
                 "status" to "success",
                 "gainers" to movers.gainers.map { 

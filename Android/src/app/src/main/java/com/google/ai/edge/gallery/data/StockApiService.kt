@@ -235,6 +235,7 @@ interface StockApiService {
     suspend fun getTopMovers(
         apiKey: String,
         apiSecret: String,
+        top: Int = 10
     ): AlpacaMoversResponse
 
     suspend fun getMostActiveStocks(
