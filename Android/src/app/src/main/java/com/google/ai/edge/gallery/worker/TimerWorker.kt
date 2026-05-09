@@ -191,9 +191,29 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 //                val symbols = watchlist.joinToString(", ") { it.symbol }
 //
 
-                // todo: add here, find out the top gain movers,
+                // find out the top gain movers,
+                val topMovers =
+                    stockApiService.getTopMovers(credential.apiKey, credential.apiSecret, top = 10)
+                val topGainers = topMovers.gainers.take(10)
+                logToBoth(
+                    header = "Top Gainers",
+                    content = topGainers.joinToString(", ") { "${it.symbol} (${it.percentChange}%)" }
+                )
 
-                // todo: add here, find out the getMostActiveStocks by volume
+                // find out the getMostActiveStocks by volume
+                val mostActive = stockApiService.getMostActiveStocks(
+                    credential.apiKey,
+                    credential.apiSecret,
+                    by = "volume",
+                    top = 10
+                )
+                val topMostActive = mostActive.mostActives.take(10)
+                logToBoth(
+                    header = "Most Active Stocks",
+                    content = topMostActive.joinToString(", ") { "${it.symbol} (vol: ${it.volume})" }
+                )
+
+                // todo: find overlapping list
 
                 // Step 2: Scan for Gappers
                 runStep(
