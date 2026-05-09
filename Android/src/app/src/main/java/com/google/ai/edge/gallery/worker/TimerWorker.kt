@@ -192,11 +192,19 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     "Scan Market Step",
                 )
 
+                // New Step: Get Most Active Stocks
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "Use getMostActiveStocks tool to find the stocks with the highest trading volume today.",
+                    "Most Active Stocks Step",
+                )
+
                 // Step 3: Analyze Momentum
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Select one stock from the top gainers from the previous step that look promising (preferably priced between $1.50 and $20). getLatestNews.",
+                    "Select one stock from the top gainers or most active stocks from the previous steps that look promising (preferably priced between $1.50 and $20). getLatestNews.",
                     "Analyze Momentum Step",
                 )
 

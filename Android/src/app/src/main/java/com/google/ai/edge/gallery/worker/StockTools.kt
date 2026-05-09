@@ -380,4 +380,35 @@ class StockTools(
             mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
         }
     }
+
+    @Tool(description = "Get the most active stocks by volume or trade count.")
+    fun getMostActiveStocks(
+        @ToolParam(description = "The metric to rank by: 'volume' or 'trades'. Default is 'volume'.") by: String = "volume",
+        @ToolParam(description = "The number of top most active stocks to fetch. Default is 10.") top: Int = 10
+    ): Map<String, Any> = runBlocking(coroutineContext) {
+        Log.d(TAG, "getMostActiveStocks(by=$by, top=$top) called")
+        if (apiKey.isEmpty() || apiSecret.isEmpty()) {
+            val error = "API credentials not set"
+            Log.e(TAG, "getMostActiveStocks error: $error")
+            return@runBlocking mapOf("status" to "error", "message" to error)
+        }
+        try {
+            val response = stockApiService.getMostActiveStocks(apiKey, apiSecret, by, top)
+            val result = mapOf(
+                "status" to "success",
+                "most_active" to response.mostActives.map {
+                    mapOf(
+                        "symbol" to it.symbol,
+                        "volume" to it.volume,
+                        "trade_count" to it.tradeCount
+                    )
+                }
+            )
+            Log.d(TAG, "getMostActiveStocks result: success")
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "getMostActiveStocks error: ${e.message}", e)
+            mapOf("status" to "error", "message" to (e.message ?: "Unknown error"))
+        }
+    }
 }

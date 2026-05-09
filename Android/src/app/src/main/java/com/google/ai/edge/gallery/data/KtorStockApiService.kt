@@ -150,4 +150,20 @@ class KtorStockApiService(
             header("APCA-API-SECRET-KEY", apiSecret)
         }.body()
     }
+
+    override suspend fun getMostActiveStocks(
+        apiKey: String,
+        apiSecret: String,
+        by: String,
+        top: Int
+    ): AlpacaMostActiveResponse {
+        return client.get("https://data.alpaca.markets/v1beta1/screener/stocks/most-actives") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+            url {
+                parameters.append("by", by)
+                parameters.append("top", top.toString())
+            }
+        }.body()
+    }
 }

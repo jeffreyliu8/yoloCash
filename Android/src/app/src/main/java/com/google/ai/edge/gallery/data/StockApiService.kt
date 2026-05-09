@@ -123,6 +123,19 @@ data class AlpacaMoversResponse(
 )
 
 @Serializable
+data class AlpacaMostActive(
+    @SerialName("symbol") val symbol: String,
+    @SerialName("volume") val volume: Long,
+    @SerialName("trade_count") val tradeCount: Long,
+)
+
+@Serializable
+data class AlpacaMostActiveResponse(
+    @SerialName("most_actives") val mostActives: List<AlpacaMostActive> = emptyList(),
+    @SerialName("last_updated") val lastUpdated: String? = null,
+)
+
+@Serializable
 data class AlpacaWSMessage(
     @SerialName("T") val type: String,
     @SerialName("msg") val msg: String? = null,
@@ -223,4 +236,11 @@ interface StockApiService {
         apiKey: String,
         apiSecret: String,
     ): AlpacaMoversResponse
+
+    suspend fun getMostActiveStocks(
+        apiKey: String,
+        apiSecret: String,
+        by: String = "volume",
+        top: Int = 10
+    ): AlpacaMostActiveResponse
 }
