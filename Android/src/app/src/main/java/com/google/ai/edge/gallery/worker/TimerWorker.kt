@@ -213,13 +213,38 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     content = topMostActive.joinToString(", ") { "${it.symbol} (vol: ${it.volume})" }
                 )
 
-                // todo: find overlapping list
+                // find overlapping list
+                val overlappingSymbols = topGainers.map { it.symbol }.intersect(
+                    topMostActive.map { it.symbol }.toSet()
+                )
+                logToBoth(
+                    header = "Overlapping Stocks",
+                    content = if (overlappingSymbols.isEmpty()) {
+                        "No overlapping stocks found between top gainers and most active."
+                    } else {
+                        "Overlapping symbols: ${overlappingSymbols.joinToString(", ")}"
+                    }
+                )
+                if (overlappingSymbols.isEmpty()) {
+                    continue
+                }
+
+                // todo: iterate through every overloapping symbols, get the news and check if there is any positive news in the last 30 minutes
 
                 // Step 2: Scan for Gappers
+                val scanPrompt = if (overlappingSymbols.isNotEmpty()) {
+                    "Identify the best stock to trade from these overlapping stocks: ${
+                        overlappingSymbols.joinToString(
+                            ", "
+                        )
+                    }. These stocks are both top gainers and among the most active by volume. Use the getLatestNews tool to check for positive sentiment and pick the top 1."
+                } else {
+                    "Find top 1 gainer stock, use getTopMovers tool, make sure this stock is one of the top mover, also one of the most getMostActiveStocks by volume, and getLatestNews has positive news"
+                }
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Find top 1 gainer stock, use getTopMovers tool, make sure this stock is one of the top mover, also one of the most getMostActiveStocks by volume, and getLatestNews has positive news",
+                    scanPrompt,
                     "Scan Market Step",
                 )
 
