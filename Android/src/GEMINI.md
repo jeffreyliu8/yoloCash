@@ -27,7 +27,7 @@ The project follows a modular and extensible architecture:
     *   **Features:** Manage multiple Alpaca credentials, track per-account stock watchlists, view real-time account information, and enable a background "Debug Mode" to bypass market-close checks.
     *   **Live Service:** Supports a foreground `LiveService` that streams real-time news from Alpaca via WebSockets. Users can start and stop this service from the settings screen.
     *   **Persistence:** Uses Room Database (`StockDao`). `WatchlistStockEntity` uses a composite primary key (`credentialName`, `symbol`) to support unique watchlists for each account. App-wide flags (e.g., `debug_mode`) are stored in `Settings` DataStore.
-    *   **Integration:** Communicates with Alpaca's REST API via Ktor 3. `TimerWorker` (scheduled via WorkManager) periodically summarizes account status and watchlist performance using on-device models.
+    *   **Integration:** Communicates with Alpaca's REST API via Ktor 3. `TimerWorker` (scheduled via WorkManager) periodically scans the market for momentum trades. It identifies stocks that are both "Top Gainers" and "Most Active", filters for positive sentiment in news from the last 15 minutes using on-device AI (Gemma 4), and executes trades based on available buying power.
 *   **Log Entries:** A mechanism to persist various interactions and system logs.
     *   **Persistence:** Uses Room Database (`log_entries` table) to store headers and their corresponding content.
 *   **MySettings:** A centralized settings screen accessible from the Home screen. It allows users to view all currently downloaded models and access experimental features like the Stock Analyzer.
