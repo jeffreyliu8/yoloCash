@@ -191,54 +191,57 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 //                val symbols = watchlist.joinToString(", ") { it.symbol }
 //
 
+                // todo: add here, find out the top gain movers,
+
+                // todo: add here, find out the getMostActiveStocks by volume
 
                 // Step 2: Scan for Gappers
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Use getTopMovers tool to scan the market for today's top gainers.",
+                    "Find top 1 gainer stock, use getTopMovers tool, make sure this stock is one of the top mover, also one of the most getMostActiveStocks by volume, and getLatestNews has positive news",
                     "Scan Market Step",
                 )
 
-                // New Step: Get Most Active Stocks
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "Use getMostActiveStocks tool to find the stocks with the highest trading volume today.",
-                    "Most Active Stocks Step",
-                )
-
-                // Step 3: Analyze Momentum
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "Select one stock from the top gainers or most active stocks from the previous steps that look promising (preferably priced between $1.50 and $20). getLatestNews.",
-                    "Analyze Momentum Step",
-                )
-
-                // Step 4: Check Current Positions
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "List all current positions and open orders. If we have any existing positions that are losing momentum, we might need to sell them.",
-                    "Positions and Orders Step",
-                )
-
-                // Step 1: Account Status
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "Get the current account status for '${credential.name}'. Check our available buying power.",
-                    "Account Status Step",
-                )
-
-                // Step 5: Execute Momentum Trade
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
-                    "Execute Trade Step",
-                )
+//                // New Step: Get Most Active Stocks
+//                runStep(
+//                    credentialName = credential.name,
+//                    model,
+//                    "Use getMostActiveStocks tool to find the stocks with the highest trading volume and trades.",
+//                    "Most Active Stocks Step",
+//                )
+//
+//                // Step 3: Analyze Momentum
+//                runStep(
+//                    credentialName = credential.name,
+//                    model,
+//                    "Select one stock from the top gainers or most active stocks from the previous steps that look promising (preferably priced between $1.50 and $20). getLatestNews.",
+//                    "Analyze Momentum Step",
+//                )
+//
+//                // Step 4: Check Current Positions
+//                runStep(
+//                    credentialName = credential.name,
+//                    model,
+//                    "List all current positions and open orders. If we have any existing positions that are losing momentum, we might need to sell them.",
+//                    "Positions and Orders Step",
+//                )
+//
+//                // Step 1: Account Status
+//                runStep(
+//                    credentialName = credential.name,
+//                    model,
+//                    "Get the current account status for '${credential.name}'. Check our available buying power.",
+//                    "Account Status Step",
+//                )
+//
+//                // Step 5: Execute Momentum Trade
+//                runStep(
+//                    credentialName = credential.name,
+//                    model,
+//                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
+//                    "Execute Trade Step",
+//                )
             }
 
             // Clean up
