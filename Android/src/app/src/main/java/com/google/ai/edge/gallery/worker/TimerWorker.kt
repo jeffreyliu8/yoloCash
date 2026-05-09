@@ -36,6 +36,7 @@ import com.google.ai.edge.gallery.data.room.LogDao
 import com.google.ai.edge.gallery.data.room.LogEntry
 import com.google.ai.edge.gallery.data.room.StockDao
 import com.google.ai.edge.gallery.runtime.runtimeHelper
+import com.google.ai.edge.litertlm.ToolProvider
 import com.google.ai.edge.litertlm.tool
 import com.orhanobut.logger.Logger
 import dagger.hilt.EntryPoint
@@ -185,7 +186,6 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 stockTools.apiKey = credential.apiKey
                 stockTools.apiSecret = credential.apiSecret
 
-                model.runtimeHelper.resetConversation(model, tools = tools)
 
 //                val watchlist = stockDao.getWatchlist(credential.name).first()
 //                val symbols = watchlist.joinToString(", ") { it.symbol }
@@ -243,7 +243,8 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         val headlines = recentNews.joinToString("\n") { "- ${it.headline}" }
                         val sentimentResponse = runStep(
                             credentialName = credential.name,
-                            model,
+                            tools = tools,
+                            model = model,
                             prompt = "Analyze the following news headlines for $symbol and determine if there is any positive sentiment that would justify a trade. Answer only 'YES' or 'NO'.\n\n$headlines",
                             header = "Sentiment Check: $symbol"
                         )
@@ -266,22 +267,24 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         "Stocks with positive news: ${positiveOverlaps.joinToString(", ")}"
                     }
                 )
-//
-//                // Step 1: Account Status
-//                runStep(
-//                    credentialName = credential.name,
-//                    model,
-//                    "Get the current account status for '${credential.name}'. Check our available buying power.",
-//                    "Account Status Step",
-//                )
-//
-//                // Step 5: Execute Momentum Trade
-//                runStep(
-//                    credentialName = credential.name,
-//                    model,
-//                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
-//                    "Execute Trade Step",
-//                )
+
+                // check Account Status
+                runStep(
+                    credentialName = credential.name,
+                    tools = tools,
+                    model = model,
+                    "Get the current account status for '${credential.name}'. Check our available buying power.",
+                    "Account Status Step",
+                )
+
+                // Execute Momentum Trade
+                runStep(
+                    credentialName = credential.name,
+                    tools = tools,
+                    model = model,
+                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
+                    "Execute Trade Step",
+                )
             }
 
             // Clean up
@@ -305,11 +308,13 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
     private suspend fun runStep(
         credentialName: String,
+        tools: List<ToolProvider>,
         model: Model,
         prompt: String,
         header: String,
     ): String {
         logToBoth(header = "$credentialName Request: $header", content = prompt)
+        model.runtimeHelper.resetConversation(model, tools = tools)
         val result = suspendCancellableCoroutine { continuation ->
             var fullResponse = ""
             model.runtimeHelper.runInference(
