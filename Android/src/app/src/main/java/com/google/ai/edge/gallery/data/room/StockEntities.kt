@@ -24,6 +24,7 @@ data class AlpacaCredentialEntity(
     @PrimaryKey val name: String,
     val apiKey: String,
     val apiSecret: String,
+    val enabled: Boolean = true,
 )
 
 @Entity(

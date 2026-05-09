@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -78,6 +79,22 @@ fun CredentialDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = stringResource(R.string.cd_navigate_back_icon),
+                        )
+                    }
+                },
+                actions = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 16.dp)
+                    ) {
+                        Text(
+                            text = if (uiState.isEnabled) "Enabled" else "Disabled",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Switch(
+                            checked = uiState.isEnabled,
+                            onCheckedChange = { viewModel.toggleEnabled(it) }
                         )
                     }
                 }

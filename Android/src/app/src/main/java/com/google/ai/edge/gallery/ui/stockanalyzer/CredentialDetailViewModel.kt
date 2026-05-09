@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 
 data class CredentialDetailUiState(
   val credentialName: String = "",
+  val isEnabled: Boolean = true,
   val account: AlpacaAccount? = null,
   val orders: List<AlpacaOrder> = emptyList(),
   val positions: List<AlpacaPosition> = emptyList(),
@@ -53,6 +54,7 @@ class CredentialDetailViewModel @Inject constructor(
 
   private val credentialName: String = checkNotNull(savedStateHandle["credentialName"])
 
+  private val _isEnabled = MutableStateFlow(true)
   private val _accountInfo = MutableStateFlow<AlpacaAccount?>(null)
   private val _orders = MutableStateFlow<List<AlpacaOrder>>(emptyList())
   private val _positions = MutableStateFlow<List<AlpacaPosition>>(emptyList())
@@ -60,19 +62,21 @@ class CredentialDetailViewModel @Inject constructor(
   private val _error = MutableStateFlow<String?>(null)
 
   val uiState: StateFlow<CredentialDetailUiState> = combine(
+    _isEnabled,
     _accountInfo,
     _orders,
     _positions,
     _isLoading,
     _error
-  ) { account, orders, positions, isLoading, error ->
+  ) { flows: Array<Any?> ->
     CredentialDetailUiState(
       credentialName = credentialName,
-      account = account,
-      orders = orders,
-      positions = positions,
-      isLoading = isLoading,
-      error = error
+      isEnabled = flows[0] as Boolean,
+      account = flows[1] as AlpacaAccount?,
+      orders = flows[2] as List<AlpacaOrder>,
+      positions = flows[3] as List<AlpacaPosition>,
+      isLoading = flows[4] as Boolean,
+      error = flows[5] as String?
     )
   }.stateIn(
     scope = viewModelScope,
@@ -91,6 +95,7 @@ class CredentialDetailViewModel @Inject constructor(
       try {
         val credential = getCredential()
         if (credential != null) {
+          _isEnabled.value = credential.enabled
           val accountDeferred = async { stockApiService.getAccount(credential.apiKey, credential.apiSecret) }
           val ordersDeferred = async { stockApiService.getOrders(credential.apiKey, credential.apiSecret) }
           val positionsDeferred = async { stockApiService.getPositions(credential.apiKey, credential.apiSecret) }
@@ -105,6 +110,17 @@ class CredentialDetailViewModel @Inject constructor(
         _error.value = "Failed to fetch account info: ${e.message}"
       } finally {
         _isLoading.value = false
+      }
+    }
+  }
+
+  fun toggleEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+      val credential = getCredential()
+      if (credential != null) {
+        val updatedCredential = credential.copy(enabled = enabled)
+        stockDao.insertCredential(updatedCredential)
+        _isEnabled.value = enabled
       }
     }
   }

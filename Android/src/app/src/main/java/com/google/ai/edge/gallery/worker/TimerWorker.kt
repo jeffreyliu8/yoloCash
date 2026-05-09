@@ -168,6 +168,14 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             for (credential in credentials) {
+                if (!credential.enabled) {
+                    logToBoth(
+                        header = "Skipping ${credential.name}",
+                        content = "Credential ${credential.name} is disabled. Skipping."
+                    )
+                    continue
+                }
+
                 logToBoth(
                     header = "Processing ${credential.name}...",
                     content = "Processing ${credential.name}..."
