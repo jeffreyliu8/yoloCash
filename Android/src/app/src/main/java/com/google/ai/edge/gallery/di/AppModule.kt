@@ -149,9 +149,9 @@ internal object AppModule {
             .addCallback(object : RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
-                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 1', 'PKMN74Y7PMLTGKIGBKL4VV7DUF', 'CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C')")
-                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 2', 'PK3SIFRQMOJLSE443UBGHOZSCY', 'DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4')")
-                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret) VALUES ('Account 3', 'PKGETVNBNXWAY44G7JOHKT3BYV', 'ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u')")
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret, enabled) VALUES ('Account 1', 'PKMN74Y7PMLTGKIGBKL4VV7DUF', 'CCyTsMJ8W4kQi1zysW57Ga1CUen4Q27mNDD9MRR1cu1C', 1)")
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret, enabled) VALUES ('Account 2', 'PK3SIFRQMOJLSE443UBGHOZSCY', 'DF5QYtvT4dTDM5Mva3yFrYf2c4TYhhaSkifaTBkEsTo4', 1)")
+                    db.execSQL("INSERT INTO alpaca_credentials (name, apiKey, apiSecret, enabled) VALUES ('Account 3', 'PKGETVNBNXWAY44G7JOHKT3BYV', 'ETw7JGPuLP5f8eLbFUXnJutiN7d5qcEEZNEozWWaVK5u', 1)")
                 }
             })
             .fallbackToDestructiveMigration(true)

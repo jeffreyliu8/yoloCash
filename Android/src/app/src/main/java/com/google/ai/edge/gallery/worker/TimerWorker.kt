@@ -310,7 +310,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
             // Look for a model that contains "Gemma 4" in its name
             val allowedModel =
-                allowlist.models.find { it.name.contains("Gemma-4", ignoreCase = true) }
+                allowlist.models.find { it.name.contains("Gemma-4-E4B-it", ignoreCase = true) }
             return allowedModel?.toModel()?.apply { preProcess() }
         } catch (e: Exception) {
             logToBoth(
