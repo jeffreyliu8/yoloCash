@@ -267,6 +267,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         "Stocks with positive news: ${positiveOverlaps.joinToString(", ")}"
                     }
                 )
+                if (positiveOverlaps.isEmpty()) {
+                    continue
+                }
 
                 // check Account Status
                 runStep(
@@ -278,11 +281,13 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 )
 
                 // Execute Momentum Trade
+                val executeTradePrompt =
+                    "Use placeOrder to execute a large trade on the stock '${positiveOverlaps.first()}'. Use my account status to calculate how many shares I can buy with my available buying power."
                 runStep(
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
+                    executeTradePrompt,
                     "Execute Trade Step",
                 )
             }
