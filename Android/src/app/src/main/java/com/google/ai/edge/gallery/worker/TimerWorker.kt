@@ -282,7 +282,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
                 // Execute Momentum Trade
                 val executeTradePrompt =
-                    "Use placeOrder to execute a large trade on the stock '${positiveOverlaps.first()}'. Use my account status to calculate how many shares I can buy with my available buying power."
+                    "Use placeOrder to execute a max trade on the stock '${positiveOverlaps.first()}',that is multiple of 100, market order. Don't ask me more questions, just execute."
                 runStep(
                     credentialName = credential.name,
                     tools = tools,
