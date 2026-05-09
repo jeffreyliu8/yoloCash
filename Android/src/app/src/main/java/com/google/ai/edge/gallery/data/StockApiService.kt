@@ -228,8 +228,8 @@ interface StockApiService {
         apiSecret: String,
         symbols: String? = null,
         limit: Int = 50,
-        start: String? = null,
-        end: String? = null
+        start: String? = null, //The inclusive start of the interval. Format: RFC-3339 or YYYY-MM-DD. Default: the beginning of the current day, but at least 15 minutes ago if the user doesn't have real-time access for the feed.
+        end: String? = null //The inclusive end of the interval. Format: RFC-3339 or YYYY-MM-DD. Default: the current time if the user has a real-time access for the feed, otherwise 15 minutes before the current time.
     ): List<AlpacaNews>
 
     suspend fun getTopMovers(

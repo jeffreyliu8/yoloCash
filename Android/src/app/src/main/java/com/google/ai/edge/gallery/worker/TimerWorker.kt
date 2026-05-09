@@ -193,8 +193,8 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
                 // find out the top gain movers,
                 val topMovers =
-                    stockApiService.getTopMovers(credential.apiKey, credential.apiSecret, top = 10)
-                val topGainers = topMovers.gainers.take(10)
+                    stockApiService.getTopMovers(credential.apiKey, credential.apiSecret, top = 20)
+                val topGainers = topMovers.gainers.take(20)
                 logToBoth(
                     header = "Top Gainers",
                     content = topGainers.joinToString(", ") { "${it.symbol} (${it.percentChange}%)" }
@@ -205,9 +205,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     credential.apiKey,
                     credential.apiSecret,
                     by = "volume",
-                    top = 10
+                    top = 20
                 )
-                val topMostActive = mostActive.mostActives.take(10)
+                val topMostActive = mostActive.mostActives.take(20)
                 logToBoth(
                     header = "Most Active Stocks",
                     content = topMostActive.joinToString(", ") { "${it.symbol} (vol: ${it.volume})" }
@@ -229,48 +229,43 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     continue
                 }
 
-                // todo: iterate through every overloapping symbols, get the news and check if there is any positive news in the last 30 minutes
+                // iterate through every overlapping symbols, get the news and check if there is any positive news in the last 15 minutes
+                val positiveOverlaps = mutableListOf<String>()
+                for (symbol in overlappingSymbols) {
+                    val recentNews = stockApiService.getLatestNews(
+                        credential.apiKey,
+                        credential.apiSecret,
+                        symbols = symbol,
+                        limit = 50
+                    )
 
-                // Step 2: Scan for Gappers
-                val scanPrompt = if (overlappingSymbols.isNotEmpty()) {
-                    "Identify the best stock to trade from these overlapping stocks: ${
-                        overlappingSymbols.joinToString(
-                            ", "
+                    if (recentNews.isNotEmpty()) {
+                        val headlines = recentNews.joinToString("\n") { "- ${it.headline}" }
+                        val sentimentResponse = runStep(
+                            credentialName = credential.name,
+                            model,
+                            prompt = "Analyze the following news headlines for $symbol and determine if there is any positive sentiment that would justify a trade. Answer only 'YES' or 'NO'.\n\n$headlines",
+                            header = "Sentiment Check: $symbol"
                         )
-                    }. These stocks are both top gainers and among the most active by volume. Use the getLatestNews tool to check for positive sentiment and pick the top 1."
-                } else {
-                    "Find top 1 gainer stock, use getTopMovers tool, make sure this stock is one of the top mover, also one of the most getMostActiveStocks by volume, and getLatestNews has positive news"
+                        if (sentimentResponse.contains("YES", ignoreCase = true)) {
+                            positiveOverlaps.add(symbol)
+                        }
+                    } else {
+                        logToBoth(
+                            header = "No news found in past 15 mins",
+                            content = "No news found in past 15 mins"
+                        )
+                    }
                 }
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    scanPrompt,
-                    "Scan Market Step",
-                )
 
-//                // New Step: Get Most Active Stocks
-//                runStep(
-//                    credentialName = credential.name,
-//                    model,
-//                    "Use getMostActiveStocks tool to find the stocks with the highest trading volume and trades.",
-//                    "Most Active Stocks Step",
-//                )
-//
-//                // Step 3: Analyze Momentum
-//                runStep(
-//                    credentialName = credential.name,
-//                    model,
-//                    "Select one stock from the top gainers or most active stocks from the previous steps that look promising (preferably priced between $1.50 and $20). getLatestNews.",
-//                    "Analyze Momentum Step",
-//                )
-//
-//                // Step 4: Check Current Positions
-//                runStep(
-//                    credentialName = credential.name,
-//                    model,
-//                    "List all current positions and open orders. If we have any existing positions that are losing momentum, we might need to sell them.",
-//                    "Positions and Orders Step",
-//                )
+                logToBoth(
+                    header = "Positive Overlap Stocks",
+                    content = if (positiveOverlaps.isEmpty()) {
+                        "No stocks with positive news in the last 15 minutes."
+                    } else {
+                        "Stocks with positive news: ${positiveOverlaps.joinToString(", ")}"
+                    }
+                )
 //
 //                // Step 1: Account Status
 //                runStep(
