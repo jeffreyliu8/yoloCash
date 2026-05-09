@@ -168,7 +168,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
             }
 
             for (credential in credentials) {
-                setForeground(createForegroundInfo("Processing ${credential.name}..."))
+                logToBoth(
+                    header = "Processing ${credential.name}...",
+                    content = "Processing ${credential.name}..."
+                )
 
                 // Update StockTools with current credentials
                 stockTools.apiKey = credential.apiKey
@@ -176,22 +179,16 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
                 model.runtimeHelper.resetConversation(model, tools = tools)
 
-                val watchlist = stockDao.getWatchlist(credential.name).first()
-                val symbols = watchlist.joinToString(", ") { it.symbol }
+//                val watchlist = stockDao.getWatchlist(credential.name).first()
+//                val symbols = watchlist.joinToString(", ") { it.symbol }
+//
 
-                // Step 1: Account Status
-                runStep(
-                    credentialName = credential.name,
-                    model,
-                    "Get the current account status for '${credential.name}'. Check our available buying power.",
-                    "Account Status Step",
-                )
 
                 // Step 2: Scan for Gappers
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Use getTopMovers tool to scan the market for today's top gainers. We are looking for momentum stocks.",
+                    "Use getTopMovers tool to scan the market for today's top gainers.",
                     "Scan Market Step",
                 )
 
@@ -199,7 +196,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Select 1 or 2 of the top gainers from the previous step that look promising (preferably priced between $1.50 and $20). Use getMACD to check their momentum and getLatestNews to find a catalyst.",
+                    "Select one stock from the top gainers from the previous step that look promising (preferably priced between $1.50 and $20). getLatestNews.",
                     "Analyze Momentum Step",
                 )
 
@@ -211,17 +208,28 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     "Positions and Orders Step",
                 )
 
+                // Step 1: Account Status
+                runStep(
+                    credentialName = credential.name,
+                    model,
+                    "Get the current account status for '${credential.name}'. Check our available buying power.",
+                    "Account Status Step",
+                )
+
                 // Step 5: Execute Momentum Trade
                 runStep(
                     credentialName = credential.name,
                     model,
-                    "Based on the Ross Cameron momentum strategy, decide if any of the scanned gappers are worth buying, or if any current positions should be sold. Use placeOrder to execute a large trade if a setup is perfect. Provide a final summary of your actions and momentum trading reasoning.",
+                    "Use placeOrder to execute a large trade on top gainer which have positive news, just pick the first one. Use my account status to calculate how many orders I can buy.",
                     "Execute Trade Step",
                 )
             }
 
             // Clean up
-            setForeground(createForegroundInfo("Cleaning up..."))
+            logToBoth(
+                header = "Cleaning up...",
+                content = "Cleaning up..."
+            )
             suspendCancellableCoroutine { continuation ->
                 model.runtimeHelper.cleanUp(model = model, onDone = { continuation.resume(Unit) })
             }
