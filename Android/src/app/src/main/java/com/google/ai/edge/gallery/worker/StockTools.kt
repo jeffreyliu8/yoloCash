@@ -216,16 +216,18 @@ class StockTools(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
-        @ToolParam(description = "The order type, default is 'market', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "market"
+        @ToolParam(description = "The order type, default is 'market', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "market",
+        @ToolParam(description = "The time in force for the order, e.g., 'gtc', 'day', 'opg', 'cls', 'ioc', 'fok'. Default is 'day'.") timeInForce: String = "day",
+        @ToolParam(description = "The limit price for the order, required if type is 'limit'.") limitPrice: String? = null
     ): Map<String, String> = runBlocking(coroutineContext) {
-        Log.d(TAG, "placeOrder(symbol=$symbol, qty=$qty, side=$side, type=$type) called")
+        Log.d(TAG, "placeOrder(symbol=$symbol, qty=$qty, side=$side, type=$type, timeInForce=$timeInForce, limitPrice=$limitPrice) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
             val error = "API credentials not set"
             Log.e(TAG, "placeOrder error: $error")
             return@runBlocking mapOf("status" to "error", "message" to error)
         }
         try {
-            val order = stockApiService.postOrder(apiKey, apiSecret, symbol, qty, side, type)
+            val order = stockApiService.postOrder(apiKey, apiSecret, symbol, qty, side, type, timeInForce, limitPrice)
             val result = mapOf(
                 "status" to "success",
                 "order_id" to order.id,

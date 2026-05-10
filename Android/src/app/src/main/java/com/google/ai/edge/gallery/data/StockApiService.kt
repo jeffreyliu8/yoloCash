@@ -214,7 +214,8 @@ interface StockApiService {
         qty: String,
         side: String,
         type: String = "market",
-        timeInForce: String = "gtc"
+        timeInForce: String = "day",
+        limitPrice: String? = null
     ): AlpacaOrder
 
     suspend fun deleteOrder(

@@ -98,21 +98,22 @@ class KtorStockApiService(
         qty: String,
         side: String,
         type: String,
-        timeInForce: String
+        timeInForce: String,
+        limitPrice: String?
     ): AlpacaOrder {
         return client.post("${baseUrl}v2/orders") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
             contentType(io.ktor.http.ContentType.Application.Json)
-            setBody(
-                mapOf(
-                    "symbol" to symbol,
-                    "qty" to qty,
-                    "side" to side,
-                    "type" to type,
-                    "time_in_force" to timeInForce
-                )
+            val bodyMap = mutableMapOf(
+                "symbol" to symbol,
+                "qty" to qty,
+                "side" to side,
+                "type" to type,
+                "time_in_force" to timeInForce
             )
+            limitPrice?.let { bodyMap["limit_price"] = it }
+            setBody(bodyMap)
         }.body()
     }
 
