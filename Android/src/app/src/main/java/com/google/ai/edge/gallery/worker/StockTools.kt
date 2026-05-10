@@ -216,7 +216,7 @@ class StockTools(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
-        @ToolParam(description = "The order type, default is 'market'.") type: String = "market"
+        @ToolParam(description = "The order type, default is 'market', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "market"
     ): Map<String, String> = runBlocking(coroutineContext) {
         Log.d(TAG, "placeOrder(symbol=$symbol, qty=$qty, side=$side, type=$type) called")
         if (apiKey.isEmpty() || apiSecret.isEmpty()) {
