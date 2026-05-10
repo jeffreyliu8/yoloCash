@@ -55,7 +55,7 @@ fun StockAnalyzerSettingsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
                         Icon(
@@ -80,9 +80,9 @@ fun StockAnalyzerSettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("15 Minute Timer", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.timer_15_minute), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Execute a background worker every 15 minutes that shows a counting notification.",
+                        stringResource(R.string.timer_description),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -98,7 +98,7 @@ fun StockAnalyzerSettingsScreen(
                 onClick = { viewModel.triggerImmediateTimer() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Trigger Timer Now")
+                Text(stringResource(R.string.trigger_timer_now))
             }
 
             Row(
@@ -108,9 +108,9 @@ fun StockAnalyzerSettingsScreen(
             ) {
                 val isDebugModeEnabled by viewModel.isDebugModeEnabled.collectAsState()
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Debug Mode", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.debug_mode), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Skip market close check in TimerWorker.",
+                        stringResource(R.string.debug_mode_description),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -126,21 +126,21 @@ fun StockAnalyzerSettingsScreen(
                 onClick = { viewModel.populateCredentials() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Populate Credentials")
+                Text(stringResource(R.string.populate_credentials))
             }
 
             Button(
                 onClick = { viewModel.runLiveService() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Run Live Service")
+                Text(stringResource(R.string.run_live_service))
             }
 
             Button(
                 onClick = { viewModel.stopLiveService() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Stop Live Service")
+                Text(stringResource(R.string.stop_live_service))
             }
         }
     }
