@@ -316,9 +316,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     continue
                 }
 
-                val formattedPrice = BigDecimal((stockPrice * 0.99).toString())
-                    .setScale(2, RoundingMode.DOWN)
-                    .toDouble()
+                val formattedPrice =
+                    BigDecimal((stockPrice * 0.99).toString()).setScale(2, RoundingMode.DOWN)
+
 
                 // Execute Momentum Trade
                 runStep(
