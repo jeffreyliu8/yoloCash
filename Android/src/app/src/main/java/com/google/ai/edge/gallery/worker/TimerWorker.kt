@@ -284,7 +284,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     null
                 } ?: continue
 
-                val buyingPower = account.buyingPower.toDoubleOrNull() ?: 0.0
+                val buyingPower = account.cash.toDoubleOrNull() ?: 0.0
                 val firstStock = positiveOverlaps.first()
                 val stockPrice = try {
                     stockApiService.getStockPrice(
@@ -321,14 +321,27 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
 
                 // Execute Momentum Trade
-                runStep(
-                    resetConversation = false,
-                    credentialName = credential.name,
-                    tools = tools,
-                    model = model,
-                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at ${formattedPrice}. Show me the client_order_id",
-                    "Execute Trade Step",
-                )
+                try {
+                    val order = stockApiService.postOrder(
+                        apiKey = credential.apiKey,
+                        apiSecret = credential.apiSecret,
+                        symbol = firstStock,
+                        qty = roundedQty,
+                        side = "buy",
+                        type = "limit",
+                        timeInForce = "day",
+                        limitPrice = formattedPrice.toString()
+                    )
+                    logToBoth(
+                        header = "Execute Trade Step",
+                        content = "Order placed successfully: ${order.id} for $roundedQty shares of $firstStock at $formattedPrice"
+                    )
+                } catch (e: Exception) {
+                    logToBoth(
+                        header = "Execute Trade Error",
+                        content = "Failed to place order for $firstStock: ${e.message}"
+                    )
+                }
             }
 
             // Clean up
