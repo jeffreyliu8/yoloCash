@@ -111,7 +111,7 @@ class KtorStockApiService(
         apiKey: String,
         apiSecret: String,
         symbol: String,
-        qty: String,
+        qty: Int,
         side: String,
         type: String,
         timeInForce: String,

@@ -214,7 +214,7 @@ class StockTools(
     @Tool(description = "Place a buy or sell order for a stock.")
     fun placeOrder(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
-        @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
+        @ToolParam(description = "The quantity of shares to buy or sell.") qty: Int,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
         @ToolParam(description = "The order type, default is 'limit', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "limit",
         @ToolParam(description = "The time in force for the order, e.g., 'gtc', 'day', 'opg', 'cls', 'ioc', 'fok'. Default is 'day'.") timeInForce: String = "day",

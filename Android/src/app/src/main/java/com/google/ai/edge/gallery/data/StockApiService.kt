@@ -173,7 +173,7 @@ data class AlpacaPosition(
 @Serializable
 data class PostOrderRequest(
     @SerialName("symbol") val symbol: String,
-    @SerialName("qty") val qty: String? = null,
+    @SerialName("qty") val qty: Int,
     @SerialName("notional") val notional: String? = null,
     @SerialName("side") val side: String,
     @SerialName("type") val type: String,
@@ -234,7 +234,7 @@ interface StockApiService {
         apiKey: String,
         apiSecret: String,
         symbol: String,
-        qty: String,
+        qty: Int,
         side: String,
         type: String = "limit",
         timeInForce: String = "day",
