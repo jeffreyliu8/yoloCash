@@ -48,6 +48,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.coroutines.resume
 
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
@@ -314,13 +316,17 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     continue
                 }
 
+                val formattedPrice = BigDecimal((stockPrice * 0.99).toString())
+                    .setScale(2, RoundingMode.DOWN)
+                    .toDouble()
+
                 // Execute Momentum Trade
                 runStep(
                     resetConversation = false,
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at ${stockPrice}.",
+                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at ${formattedPrice}. Show me the client_order_id",
                     "Execute Trade Step",
                 )
             }
