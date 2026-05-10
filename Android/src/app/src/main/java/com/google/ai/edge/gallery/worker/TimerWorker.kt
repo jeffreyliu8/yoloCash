@@ -275,16 +275,26 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 val account = try {
                     stockApiService.getAccount(credential.apiKey, credential.apiSecret)
                 } catch (e: Exception) {
-                    logToBoth(header = "Account Status Error", content = e.message ?: "Failed to get account")
+                    logToBoth(
+                        header = "Account Status Error",
+                        content = e.message ?: "Failed to get account"
+                    )
                     null
                 } ?: continue
 
                 val buyingPower = account.buyingPower.toDoubleOrNull() ?: 0.0
                 val firstStock = positiveOverlaps.first()
                 val stockPrice = try {
-                    stockApiService.getStockPrice(credential.apiKey, credential.apiSecret, firstStock)
+                    stockApiService.getStockPrice(
+                        credential.apiKey,
+                        credential.apiSecret,
+                        firstStock
+                    )
                 } catch (e: Exception) {
-                    logToBoth(header = "Stock Price Error", content = "Failed to get price for $firstStock: ${e.message}")
+                    logToBoth(
+                        header = "Stock Price Error",
+                        content = "Failed to get price for $firstStock: ${e.message}"
+                    )
                     null
                 } ?: continue
 
@@ -297,7 +307,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 )
 
                 if (roundedQty <= 0) {
-                    logToBoth(header = "Execute Trade Step", content = "Not enough buying power for 100 shares of $firstStock.")
+                    logToBoth(
+                        header = "Execute Trade Step",
+                        content = "Not enough buying power for 100 shares of $firstStock."
+                    )
                     continue
                 }
 
@@ -307,7 +320,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at 0.97 * $stockPrice.",
+                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at ${stockPrice}.",
                     "Execute Trade Step",
                 )
             }

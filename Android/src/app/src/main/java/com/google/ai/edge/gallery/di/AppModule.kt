@@ -94,7 +94,7 @@ internal object AppModule {
                         Log.v("HttpClient", message)
                     }
                 }
-                level = LogLevel.HEADERS
+                level = LogLevel.ALL
             }
         }
     }

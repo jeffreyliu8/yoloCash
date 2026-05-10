@@ -170,6 +170,29 @@ data class AlpacaPosition(
     @SerialName("change_today") val changeToday: String,
 )
 
+@Serializable
+data class PostOrderRequest(
+    @SerialName("symbol") val symbol: String,
+    @SerialName("qty") val qty: String? = null,
+    @SerialName("notional") val notional: String? = null,
+    @SerialName("side") val side: String,
+    @SerialName("type") val type: String,
+    @SerialName("time_in_force") val timeInForce: String,
+    @SerialName("limit_price") val limitPrice: String? = null,
+    @SerialName("stop_price") val stopPrice: String? = null,
+    @SerialName("trail_price") val trailPrice: String? = null,
+    @SerialName("trail_percent") val trailPercent: String? = null,
+    @SerialName("extended_hours") val extendedHours: Boolean? = null,
+    @SerialName("client_order_id") val clientOrderId: String? = null,
+    @SerialName("order_class") val orderClass: String? = null,
+)
+
+@Serializable
+data class AlpacaError(
+    @SerialName("code") val code: Int? = null,
+    @SerialName("message") val message: String? = null,
+)
+
 interface StockApiService {
     suspend fun getAccount(
         apiKey: String,
@@ -213,7 +236,7 @@ interface StockApiService {
         symbol: String,
         qty: String,
         side: String,
-        type: String = "market",
+        type: String = "limit",
         timeInForce: String = "day",
         limitPrice: String? = null
     ): AlpacaOrder

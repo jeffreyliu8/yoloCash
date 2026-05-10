@@ -216,7 +216,7 @@ class StockTools(
         @ToolParam(description = "The stock symbol, e.g., 'AAPL'.") symbol: String,
         @ToolParam(description = "The quantity of shares to buy or sell.") qty: String,
         @ToolParam(description = "The side of the order: 'buy' or 'sell'.") side: String,
-        @ToolParam(description = "The order type, default is 'market', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "market",
+        @ToolParam(description = "The order type, default is 'limit', options: market, limit, stop, stop_limit, trailing_stop.") type: String = "limit",
         @ToolParam(description = "The time in force for the order, e.g., 'gtc', 'day', 'opg', 'cls', 'ioc', 'fok'. Default is 'day'.") timeInForce: String = "day",
         @ToolParam(description = "The limit price for the order, required if type is 'limit'.") limitPrice: String? = null
     ): Map<String, String> = runBlocking(coroutineContext) {

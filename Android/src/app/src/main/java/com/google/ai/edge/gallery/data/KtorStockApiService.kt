@@ -23,38 +23,54 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 
 class KtorStockApiService(
     private val client: HttpClient,
     private val baseUrl: String
 ) : StockApiService {
+
+    private suspend inline fun <reified T> HttpResponse.handleResponse(): T {
+        if (status.isSuccess()) {
+            return body()
+        } else {
+            val errorBody = try {
+                body<AlpacaError>()
+            } catch (e: Exception) {
+                null
+            }
+            throw Exception(errorBody?.message ?: "Alpaca API error: $status")
+        }
+    }
+
     override suspend fun getAccount(apiKey: String, apiSecret: String): AlpacaAccount {
         return client.get("${baseUrl}v2/account") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun getClock(apiKey: String, apiSecret: String): AlpacaClock {
         return client.get("${baseUrl}v2/clock") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun getOrders(apiKey: String, apiSecret: String): List<AlpacaOrder> {
         return client.get("${baseUrl}v2/orders") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun getPositions(apiKey: String, apiSecret: String): List<AlpacaPosition> {
         return client.get("${baseUrl}v2/positions") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun getStockPrice(
@@ -65,7 +81,7 @@ class KtorStockApiService(
         val response: AlpacaLatestTrade = client.get("https://data.alpaca.markets/v2/stocks/$symbol/trades/latest") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
-        }.body()
+        }.handleResponse()
         return response.trade?.price ?: 0.0
     }
 
@@ -87,7 +103,7 @@ class KtorStockApiService(
                 start?.let { parameters.append("start", it) }
                 end?.let { parameters.append("end", it) }
             }
-        }.body()
+        }.handleResponse()
         return response.bars ?: emptyList()
     }
 
@@ -105,22 +121,31 @@ class KtorStockApiService(
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
             contentType(io.ktor.http.ContentType.Application.Json)
-            val bodyMap = mutableMapOf(
-                "symbol" to symbol,
-                "qty" to qty,
-                "side" to side,
-                "type" to type,
-                "time_in_force" to timeInForce
+            setBody(
+                PostOrderRequest(
+                    symbol = symbol,
+                    qty = qty,
+                    side = side,
+                    type = type,
+                    timeInForce = timeInForce,
+                    limitPrice = limitPrice
+                )
             )
-            limitPrice?.let { bodyMap["limit_price"] = it }
-            setBody(bodyMap)
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun deleteOrder(apiKey: String, apiSecret: String, orderId: String) {
-        client.delete("${baseUrl}v2/orders/$orderId") {
+        val response = client.delete("${baseUrl}v2/orders/$orderId") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
+        }
+        if (!response.status.isSuccess()) {
+            val errorBody = try {
+                response.body<AlpacaError>()
+            } catch (e: Exception) {
+                null
+            }
+            throw Exception(errorBody?.message ?: "Alpaca API error: ${response.status}")
         }
     }
 
@@ -141,7 +166,7 @@ class KtorStockApiService(
                 start?.let { parameters.append("start", it) }
                 end?.let { parameters.append("end", it) }
             }
-        }.body()
+        }.handleResponse()
         return response.news ?: emptyList()
     }
 
@@ -156,7 +181,7 @@ class KtorStockApiService(
             url {
                 parameters.append("top", top.toString())
             }
-        }.body()
+        }.handleResponse()
     }
 
     override suspend fun getMostActiveStocks(
@@ -172,6 +197,6 @@ class KtorStockApiService(
                 parameters.append("by", by)
                 parameters.append("top", top.toString())
             }
-        }.body()
+        }.handleResponse()
     }
 }
