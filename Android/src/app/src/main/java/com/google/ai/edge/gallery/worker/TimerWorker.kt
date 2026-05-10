@@ -201,6 +201,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 //                val symbols = watchlist.joinToString(", ") { it.symbol }
 //
 
+                //todo: if current NY time is 3pm to 4pm, cancel all pending order, and sell all positions
+
+
                 // find out the top gain movers,
                 val topMovers =
                     stockApiService.getTopMovers(credential.apiKey, credential.apiSecret, top = 20)
