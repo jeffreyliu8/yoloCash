@@ -247,6 +247,16 @@ interface StockApiService {
         orderId: String
     )
 
+    suspend fun cancelAllOrders(
+        apiKey: String,
+        apiSecret: String
+    )
+
+    suspend fun closeAllPositions(
+        apiKey: String,
+        apiSecret: String
+    )
+
     suspend fun getLatestNews(
         apiKey: String,
         apiSecret: String,

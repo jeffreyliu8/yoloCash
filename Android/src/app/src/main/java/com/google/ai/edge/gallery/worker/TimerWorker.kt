@@ -51,6 +51,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.OffsetDateTime
 import kotlin.coroutines.resume
 
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
@@ -201,7 +202,28 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 //                val symbols = watchlist.joinToString(", ") { it.symbol }
 //
 
-                //todo: if current NY time is 3pm to 4pm, cancel all pending order, and sell all positions
+                // if current NY time is 3pm to 4pm, cancel all pending order, and sell all positions
+                val clockTimestamp = clock?.timestamp
+                if (clockTimestamp != null) {
+                    val nyTime = OffsetDateTime.parse(clockTimestamp)
+                    val hour = nyTime.hour
+                    if (hour == 15) { // 3 PM to 4 PM (15:00 - 15:59)
+                        logToBoth(
+                            header = "End of day sell-off",
+                            content = "Current NY time is $nyTime. Cancelling all orders and closing all positions for ${credential.name}."
+                        )
+                        try {
+                            stockApiService.cancelAllOrders(credential.apiKey, credential.apiSecret)
+                            stockApiService.closeAllPositions(credential.apiKey, credential.apiSecret)
+                        } catch (e: Exception) {
+                            logToBoth(
+                                header = "Sell-off error",
+                                content = "Failed to perform sell-off for ${credential.name}: ${e.message}"
+                            )
+                        }
+                        continue // Don't do momentum trading if we are selling off
+                    }
+                }
 
 
                 // find out the top gain movers,

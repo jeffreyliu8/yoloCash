@@ -149,6 +149,36 @@ class KtorStockApiService(
         }
     }
 
+    override suspend fun cancelAllOrders(apiKey: String, apiSecret: String) {
+        val response = client.delete("${baseUrl}v2/orders") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }
+        if (!response.status.isSuccess()) {
+            val errorBody = try {
+                response.body<AlpacaError>()
+            } catch (e: Exception) {
+                null
+            }
+            throw Exception(errorBody?.message ?: "Alpaca API error: ${response.status}")
+        }
+    }
+
+    override suspend fun closeAllPositions(apiKey: String, apiSecret: String) {
+        val response = client.delete("${baseUrl}v2/positions") {
+            header("APCA-API-KEY-ID", apiKey)
+            header("APCA-API-SECRET-KEY", apiSecret)
+        }
+        if (!response.status.isSuccess()) {
+            val errorBody = try {
+                response.body<AlpacaError>()
+            } catch (e: Exception) {
+                null
+            }
+            throw Exception(errorBody?.message ?: "Alpaca API error: ${response.status}")
+        }
+    }
+
     override suspend fun getLatestNews(
         apiKey: String,
         apiSecret: String,
