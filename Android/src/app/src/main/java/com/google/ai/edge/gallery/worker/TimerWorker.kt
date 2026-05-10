@@ -356,6 +356,15 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 val formattedPrice =
                     BigDecimal((stockPrice * 0.99).toString()).setScale(2, RoundingMode.DOWN)
 
+                // cancel all pending orders
+                try {
+                    stockApiService.cancelAllOrders(credential.apiKey, credential.apiSecret)
+                } catch (e: Exception) {
+                    logToBoth(
+                        header = "${credential.name}: cancel all pending orders Sell-off error",
+                        content = "Failed to perform sell-off for ${credential.name}: ${e.message}"
+                    )
+                }
 
                 // Execute Momentum Trade
                 try {
