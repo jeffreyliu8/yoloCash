@@ -28,6 +28,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.google.ai.edge.gallery.MainActivity
 import com.google.ai.edge.gallery.R
+import com.google.ai.edge.gallery.data.AlpacaClock
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.ModelAllowlist
@@ -102,29 +103,36 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
             // Check if market is open
             val credentials = stockDao.getAllCredentials().first()
-            if (credentials.isNotEmpty() && !dataStoreRepository.isDebugModeEnabled()) {
-                val firstCredential = credentials[0]
-                try {
-                    val clock =
-                        stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
-                    if (!clock.isOpen) {
-                        logToBoth(
-                            header = "Market is closed. Stopping.",
-                            content = "Market is closed. Stopping."
-                        )
-                        return Result.success()
-                    }
-                } catch (e: Exception) {
+            if (credentials.isEmpty()) {
+                logToBoth(
+                    header = "No credentials.",
+                    content = "No credentials.",
+                )
+                return Result.success()
+            }
+            val firstCredential = credentials[0]
+            var clock: AlpacaClock? = null
+            try {
+                clock = stockApiService.getClock(firstCredential.apiKey, firstCredential.apiSecret)
+            } catch (e: Exception) {
+                logToBoth(
+                    header = "Market check error",
+                    content = e.message ?: "Failed to check market status"
+                )
+            }
+            if (dataStoreRepository.isDebugModeEnabled().not()) {
+                if (clock?.isOpen == false) {
                     logToBoth(
-                        header = "Market check error",
-                        content = e.message ?: "Failed to check market status"
+                        header = "Market is closed. Stopping.",
+                        content = "Market is closed. Stopping."
                     )
+                    return Result.success()
                 }
             }
 
             logToBoth(
-                header = "Initializing model...",
-                content = "Initializing model..."
+                header = "Initializing model.",
+                content = "NY time $clock"
             )
             val json = entryPoint.json()
 
