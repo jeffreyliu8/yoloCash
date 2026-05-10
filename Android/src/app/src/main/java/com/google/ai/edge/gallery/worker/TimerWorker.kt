@@ -273,21 +273,21 @@ class TimerWorker(context: Context, params: WorkerParameters) :
 
                 // check Account Status
                 runStep(
+                    resetConversation = false,
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    "Get the current account status for '${credential.name}'. Check our available buying power.",
+                    "Get the current account status for '${credential.name}'. Check our available buying power. Calculate how many stocks I can by, give me answer as in multiple of hundreds.",
                     "Account Status Step",
                 )
 
                 // Execute Momentum Trade
-                val executeTradePrompt =
-                    "Use placeOrder to execute a max trade on the stock '${positiveOverlaps.first()}',that is multiple of 100, market order. Don't ask me more questions, just execute."
                 runStep(
+                    resetConversation = false,
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    executeTradePrompt,
+                    "Use placeOrder to execute a max trade on the stock '${positiveOverlaps.first()}', that is multiple of 100x stocks, market order. Don't ask me more questions, just execute.",
                     "Execute Trade Step",
                 )
             }
@@ -312,6 +312,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
     }
 
     private suspend fun runStep(
+        resetConversation: Boolean = true,
         credentialName: String,
         tools: List<ToolProvider>,
         model: Model,
@@ -319,7 +320,9 @@ class TimerWorker(context: Context, params: WorkerParameters) :
         header: String,
     ): String {
         logToBoth(header = "$credentialName Request: $header", content = prompt)
-        model.runtimeHelper.resetConversation(model, tools = tools)
+        if (resetConversation) {
+            model.runtimeHelper.resetConversation(model, tools = tools)
+        }
         val result = suspendCancellableCoroutine { continuation ->
             var fullResponse = ""
             model.runtimeHelper.runInference(
