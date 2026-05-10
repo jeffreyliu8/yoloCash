@@ -272,14 +272,34 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 }
 
                 // check Account Status
-                runStep(
-                    resetConversation = false,
-                    credentialName = credential.name,
-                    tools = tools,
-                    model = model,
-                    "Get the current account status for '${credential.name}'. Check our available buying power. Calculate how many stocks I can by, give me answer as in multiple of hundreds.",
-                    "Account Status Step",
+                val account = try {
+                    stockApiService.getAccount(credential.apiKey, credential.apiSecret)
+                } catch (e: Exception) {
+                    logToBoth(header = "Account Status Error", content = e.message ?: "Failed to get account")
+                    null
+                } ?: continue
+
+                val buyingPower = account.buyingPower.toDoubleOrNull() ?: 0.0
+                val firstStock = positiveOverlaps.first()
+                val stockPrice = try {
+                    stockApiService.getStockPrice(credential.apiKey, credential.apiSecret, firstStock)
+                } catch (e: Exception) {
+                    logToBoth(header = "Stock Price Error", content = "Failed to get price for $firstStock: ${e.message}")
+                    null
+                } ?: continue
+
+                val maxQty = (buyingPower / stockPrice).toInt()
+                val roundedQty = (maxQty / 100) * 100
+
+                logToBoth(
+                    header = "Account Status Step",
+                    content = "Buying Power: $buyingPower, Stock Price ($firstStock): $stockPrice, Max Qty: $maxQty, Rounded Qty (100s): $roundedQty"
                 )
+
+                if (roundedQty <= 0) {
+                    logToBoth(header = "Execute Trade Step", content = "Not enough buying power for 100 shares of $firstStock.")
+                    continue
+                }
 
                 // Execute Momentum Trade
                 runStep(
@@ -287,7 +307,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     credentialName = credential.name,
                     tools = tools,
                     model = model,
-                    "Use placeOrder to execute a max trade on the stock '${positiveOverlaps.first()}', that is multiple of 100x stocks, market order. Don't ask me more questions, just execute.",
+                    "Use placeOrder to execute a buy trade for $roundedQty shares of '$firstStock', limit order, with price at 0.97 * $stockPrice.",
                     "Execute Trade Step",
                 )
             }
