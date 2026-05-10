@@ -214,7 +214,10 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         )
                         try {
                             stockApiService.cancelAllOrders(credential.apiKey, credential.apiSecret)
-                            stockApiService.closeAllPositions(credential.apiKey, credential.apiSecret)
+                            stockApiService.closeAllPositions(
+                                credential.apiKey,
+                                credential.apiSecret
+                            )
                         } catch (e: Exception) {
                             logToBoth(
                                 header = "Sell-off error",
@@ -271,10 +274,11 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         credential.apiKey,
                         credential.apiSecret,
                         symbols = symbol,
-                        limit = 50
+                        limit = 10
                     )
 
                     if (recentNews.isNotEmpty()) {
+                        Logger.d(recentNews.map { "${it.headline},${it.createdAt}- ${it.updatedAt}\n" })
                         val headlines = recentNews.joinToString("\n") { "- ${it.headline}" }
                         val sentimentResponse = runStep(
                             credentialName = credential.name,
