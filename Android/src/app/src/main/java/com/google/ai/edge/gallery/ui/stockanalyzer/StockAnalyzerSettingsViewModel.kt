@@ -19,8 +19,10 @@ package com.google.ai.edge.gallery.ui.stockanalyzer
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -53,11 +55,16 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
 
     private val workManager = WorkManager.getInstance(context)
 
+    private val constraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+
     fun toggleTimer(enabled: Boolean) {
         dataStoreRepository.setTimerWorkerEnabled(enabled)
         _isTimerEnabled.value = enabled
         if (enabled) {
             val workRequest = PeriodicWorkRequestBuilder<TimerWorker>(15, TimeUnit.MINUTES)
+                .setConstraints(constraints)
                 .build()
             workManager.enqueueUniquePeriodicWork(
                 "TimerWorker",
@@ -75,7 +82,9 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
     }
 
     fun triggerImmediateTimer() {
-        val workRequest = OneTimeWorkRequestBuilder<TimerWorker>().build()
+        val workRequest = OneTimeWorkRequestBuilder<TimerWorker>()
+            .setConstraints(constraints)
+            .build()
         workManager.enqueueUniqueWork(
             "TimerWorkerImmediate",
             ExistingWorkPolicy.REPLACE,
