@@ -278,18 +278,20 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         credential.apiSecret,
                         symbols = symbol,
                         limit = 50,
-                        start = ZonedDateTime.now(ZoneId.of("America/New_York")).format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        start = ZonedDateTime.now(ZoneId.of("America/New_York"))
+                            .format(DateTimeFormatter.ISO_LOCAL_DATE)
                     )
 
                     if (recentNews.isNotEmpty()) {
-                        Logger.d(recentNews.map { "${it.headline},${it.createdAt}- ${it.updatedAt}\n" })
-                        val headlines = recentNews.joinToString("\n") { "- ${it.headline}" }
+                        Logger.d(recentNews.map { "${it.headline},${it.summary}- ${it.createdAt}\n" })
+                        val headlines =
+                            recentNews.joinToString("\n") { "Headline: ${it.headline}; Summary: ${it.summary}" }
                         Logger.d(headlines)
                         val sentimentResponse = runStep(
                             credentialName = credential.name,
                             tools = tools,
                             model = model,
-                            prompt = "Analyze the following news headlines for $symbol and determine if there is any positive sentiment that would justify a trade. Answer only 'YES' or 'NO'.\n\n$headlines",
+                            prompt = "Analyze the following news headlines and summaries for $symbol and determine if there is any positive sentiment that would justify a trade. Answer only 'YES' or 'NO'.\n\n$headlines",
                             header = "Sentiment Check: $symbol"
                         )
                         if (sentimentResponse.contains("YES", ignoreCase = true)) {
