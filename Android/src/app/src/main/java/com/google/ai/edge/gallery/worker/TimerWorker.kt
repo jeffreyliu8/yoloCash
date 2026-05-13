@@ -59,6 +59,19 @@ import kotlin.coroutines.resume
 
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
 
+private val SP500_TOP_100 = setOf(
+    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "BRK.B", "TSLA", "UNH",
+    "JNJ", "V", "XOM", "JPM", "PG", "MA", "HD", "CVX", "ABBV", "MRK",
+    "KO", "PEP", "PFE", "TMO", "AVGO", "COST", "ORCL", "MCD", "CSCO", "ACN",
+    "ADBE", "DHR", "LIN", "VZ", "NEE", "TXN", "DIS", "PM", "WMT", "NKE",
+    "HON", "UPS", "MS", "RTX", "AMAT", "INTU", "IBM", "COP", "LOW", "UNP",
+    "CAT", "QCOM", "CVS", "GE", "SBUX", "DE", "GS", "PLD", "EL", "ISRG",
+    "MDT", "BLK", "AMT", "T", "AXP", "NOW", "AMGN", "TJX", "CI", "SYK",
+    "ADI", "MMC", "SPGI", "BKNG", "C", "MO", "LMT", "GILD", "MDLZ", "REGN",
+    "ZTS", "CB", "BA", "VRTX", "BSX", "FIS", "SLB", "ADP", "CME", "MU",
+    "ETN", "ITW", "HUM", "NOC", "EW", "BMY", "LLY", "TGT", "LRCX", "SCHW"
+)
+
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -231,11 +244,15 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     }
                 }
 
-
                 // find out the top gain movers,
+                val topNumber = 50
                 val topMovers =
-                    stockApiService.getTopMovers(credential.apiKey, credential.apiSecret, top = 20)
-                val topGainers = topMovers.gainers.take(20)
+                    stockApiService.getTopMovers(
+                        credential.apiKey,
+                        credential.apiSecret,
+                        top = topNumber
+                    )
+                val topGainers = topMovers.gainers.take(topNumber)
                 logToBoth(
                     header = "Top Gainers",
                     content = topGainers.joinToString(", ") { "${it.symbol} (${it.percentChange}%)" }
@@ -246,18 +263,21 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     credential.apiKey,
                     credential.apiSecret,
                     by = "volume",
-                    top = 20
+                    top = topNumber
                 )
-                val topMostActive = mostActive.mostActives.take(20)
+                val topMostActive = mostActive.mostActives.take(topNumber)
                 logToBoth(
                     header = "Most Active Stocks",
                     content = topMostActive.joinToString(", ") { "${it.symbol} (vol: ${it.volume})" }
                 )
 
                 // find overlapping list
-                val overlappingSymbols = topGainers.map { it.symbol }.intersect(
+                var overlappingSymbols = topGainers.map { it.symbol }.intersect(
                     topMostActive.map { it.symbol }.toSet()
                 )
+                if (credential.name == "Account 2") {
+                    overlappingSymbols = overlappingSymbols.intersect(SP500_TOP_100)
+                }
                 logToBoth(
                     header = "Overlapping Stocks",
                     content = if (overlappingSymbols.isEmpty()) {
