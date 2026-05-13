@@ -16,6 +16,7 @@
 
 package com.google.ai.edge.gallery.data
 
+import com.orhanobut.logger.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -78,10 +79,11 @@ class KtorStockApiService(
         apiSecret: String,
         symbol: String
     ): Double {
-        val response: AlpacaLatestTrade = client.get("https://data.alpaca.markets/v2/stocks/$symbol/trades/latest") {
-            header("APCA-API-KEY-ID", apiKey)
-            header("APCA-API-SECRET-KEY", apiSecret)
-        }.handleResponse()
+        val response: AlpacaLatestTrade =
+            client.get("https://data.alpaca.markets/v2/stocks/$symbol/trades/latest") {
+                header("APCA-API-KEY-ID", apiKey)
+                header("APCA-API-SECRET-KEY", apiSecret)
+            }.handleResponse()
         return response.trade?.price ?: 0.0
     }
 
@@ -94,16 +96,17 @@ class KtorStockApiService(
         start: String?,
         end: String?
     ): List<AlpacaBar> {
-        val response: AlpacaBarsResponse = client.get("https://data.alpaca.markets/v2/stocks/$symbol/bars") {
-            header("APCA-API-KEY-ID", apiKey)
-            header("APCA-API-SECRET-KEY", apiSecret)
-            url {
-                parameters.append("timeframe", timeframe)
-                parameters.append("limit", limit.toString())
-                start?.let { parameters.append("start", it) }
-                end?.let { parameters.append("end", it) }
-            }
-        }.handleResponse()
+        val response: AlpacaBarsResponse =
+            client.get("https://data.alpaca.markets/v2/stocks/$symbol/bars") {
+                header("APCA-API-KEY-ID", apiKey)
+                header("APCA-API-SECRET-KEY", apiSecret)
+                url {
+                    parameters.append("timeframe", timeframe)
+                    parameters.append("limit", limit.toString())
+                    start?.let { parameters.append("start", it) }
+                    end?.let { parameters.append("end", it) }
+                }
+            }.handleResponse()
         return response.bars ?: emptyList()
     }
 
@@ -187,6 +190,7 @@ class KtorStockApiService(
         start: String?,
         end: String?
     ): List<AlpacaNews> {
+        Logger.d("making get latest news request $symbols with start $start end $end")
         val response: AlpacaNewsResponse = client.get("https://data.alpaca.markets/v1beta1/news") {
             header("APCA-API-KEY-ID", apiKey)
             header("APCA-API-SECRET-KEY", apiSecret)
