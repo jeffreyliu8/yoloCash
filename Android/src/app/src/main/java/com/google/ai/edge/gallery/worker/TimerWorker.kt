@@ -52,6 +52,9 @@ import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.coroutines.resume
 
 private const val MODEL_ALLOWLIST_FILENAME = "model_allowlist.json"
@@ -267,19 +270,21 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                     continue
                 }
 
-                // iterate through every overlapping symbols, get the news and check if there is any positive news in the last 15 minutes
+                // iterate through every overlapping symbols, get the news and check if there is any positive news today
                 val positiveOverlaps = mutableListOf<String>()
                 for (symbol in overlappingSymbols) {
                     val recentNews = stockApiService.getLatestNews(
                         credential.apiKey,
                         credential.apiSecret,
                         symbols = symbol,
-                        limit = 10
+                        limit = 50,
+                        start = ZonedDateTime.now(ZoneId.of("America/New_York")).format(DateTimeFormatter.ISO_LOCAL_DATE)
                     )
 
                     if (recentNews.isNotEmpty()) {
                         Logger.d(recentNews.map { "${it.headline},${it.createdAt}- ${it.updatedAt}\n" })
                         val headlines = recentNews.joinToString("\n") { "- ${it.headline}" }
+                        Logger.d(headlines)
                         val sentimentResponse = runStep(
                             credentialName = credential.name,
                             tools = tools,
@@ -292,8 +297,8 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                         }
                     } else {
                         logToBoth(
-                            header = "No news found in past 15 mins",
-                            content = "No news found in past 15 mins"
+                            header = "No news found today",
+                            content = "No news found today"
                         )
                     }
                 }
@@ -301,7 +306,7 @@ class TimerWorker(context: Context, params: WorkerParameters) :
                 logToBoth(
                     header = "Positive Overlap Stocks",
                     content = if (positiveOverlaps.isEmpty()) {
-                        "No stocks with positive news in the last 15 minutes."
+                        "No stocks with positive news today."
                     } else {
                         "Stocks with positive news: ${positiveOverlaps.joinToString(", ")}"
                     }
