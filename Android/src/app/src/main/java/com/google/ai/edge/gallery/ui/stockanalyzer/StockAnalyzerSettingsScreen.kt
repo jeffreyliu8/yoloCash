@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -51,6 +53,7 @@ fun StockAnalyzerSettingsScreen(
     viewModel: StockAnalyzerSettingsViewModel = hiltViewModel()
 ) {
     val isTimerEnabled by viewModel.isTimerEnabled.collectAsState()
+    val activeWorkInfos by viewModel.activeWorkInfos.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
@@ -69,18 +72,62 @@ fun StockAnalyzerSettingsScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier
-              .fillMaxSize()
-              .padding(innerPadding)
-              .padding(16.dp),
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (activeWorkInfos.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            "WorkManager Queue",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        activeWorkInfos.forEach { work ->
+                            val workerName = when {
+                                work.tags.any { it.contains("TimerWorker") } -> "Timer Worker"
+                                work.tags.any { it.contains("DownloadWorker") } -> "Download Worker"
+                                work.tags.any { it.contains("modelName") } -> {
+                                    val modelTag = work.tags.first { it.startsWith("modelName:") }
+                                    "Download: ${modelTag.substringAfter(":")}"
+                                }
+
+                                else -> "Worker"
+                            }
+                            Text(
+                                "• $workerName: ${work.state}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    "No active workers in queue",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.timer_15_minute), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.timer_15_minute),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                     Text(
                         stringResource(R.string.timer_description),
                         style = MaterialTheme.typography.bodySmall
@@ -108,7 +155,10 @@ fun StockAnalyzerSettingsScreen(
             ) {
                 val isDebugModeEnabled by viewModel.isDebugModeEnabled.collectAsState()
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.debug_mode), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.debug_mode),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                     Text(
                         stringResource(R.string.debug_mode_description),
                         style = MaterialTheme.typography.bodySmall

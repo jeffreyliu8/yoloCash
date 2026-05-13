@@ -40,6 +40,9 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+import androidx.work.WorkQuery
+import androidx.work.WorkInfo
+
 @HiltViewModel
 class StockAnalyzerSettingsViewModel @Inject constructor(
     private val dataStoreRepository: DataStoreRepository,
@@ -54,6 +57,16 @@ class StockAnalyzerSettingsViewModel @Inject constructor(
     val isDebugModeEnabled = _isDebugModeEnabled.asStateFlow()
 
     private val workManager = WorkManager.getInstance(context)
+
+    val activeWorkInfos = workManager.getWorkInfosFlow(
+        WorkQuery.Builder.fromStates(
+            listOf(
+                WorkInfo.State.ENQUEUED,
+                WorkInfo.State.RUNNING,
+                WorkInfo.State.BLOCKED
+            )
+        ).build()
+    )
 
     private val constraints = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.CONNECTED)
